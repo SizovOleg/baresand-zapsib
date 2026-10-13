@@ -60,7 +60,7 @@ compactness, centroid_lon, centroid_lat (два последних в метра
 - **Генезис v7** (`exports/final/baresand_genesis_v7.gpkg`, 575 054 контура, 8 155,7 км²): эоловые 2 728,5 км²;
   отмели речные 3 053,7, морские 315,8, озёрные 136,6 км²; техногенные 1 876,2 км²; неопределённые 43,8 км²
   (`exports/final/README.md`, приложение S8). Классы можно отключать в легенде. Заливка на мелких масштабах по растру
-  классов `genesis_r50` (50 м, строится; контуры меньше ячейки на нём могут не отображаться), без него из таблицы с
+  классов `genesis_r50` (50 м; контуры меньше ячейки на нём могут не отображаться), без него из таблицы с
   масштаба 9; границы контуров с масштаба 11.
 - **Плотность песков** (`exports/figures/distr_*_centroid_10000m_cells.csv`, `python/145_distribution_map.py`):
   суммарная площадь контуров, центроид которых лежит в ячейке 10 км, в га на км² ячейки. Загружены эоловые и
@@ -170,8 +170,8 @@ PYTHONIOENCODING=utf-8 python -u python/150_gee_upload.py --layer density_aeolia
 | Ассет | Источник | Поля, каналы | Состояние |
 |---|---|---|---|
 | `genesis` | `exports/final/baresand_genesis_v7.gpkg` | id, genesis, area_ha, step6_rule, gcode (1 эоловые, 2 речные отмели, 3 озёрные, 4 морские, 5 техногенные, 6 неопределённые); геометрия упрощена на 10 м | склеен |
-| `genesis_r50` | ассет `genesis` | gcode, 50 м, EPSG:3576, пирамиды MODE | строится |
-| `contours` | `exports/baresand_contours_v2.gpkg` | id | грузится (75 частей) |
+| `genesis_r50` | ассет `genesis` | gcode, 50 м, EPSG:3576, пирамиды MODE | готов (13.10.2026) |
+| `contours` | `exports/baresand_contours_v2.gpkg` | id | готов: 574 520 объектов (13.10.2026) |
 | `anthro_in` | `cadastre_v7a`, слой anthro_in | id, grp, area_ha, age2000; только части не меньше 900 м² (55 748) | загружен частями |
 | `anthro_exceed` | `cadastre_v7a`, слой anthro_exceed | id, area_ha, in_pct, age2000 | склеен |
 | `anthro_noallot` | `cadastre_v7a`, слой anthro_noallot | id, area_ha, kind, in_pct, under, age2000 | склеивается |
