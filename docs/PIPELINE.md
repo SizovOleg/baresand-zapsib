@@ -21,16 +21,16 @@ script, stage, role, inputs, outputs, include_in_repo; с 13.10.2026 также 
 ## 1. Коротко
 
 - Итоговый слой: `exports/final/baresand_genesis_v7.gpkg`, слой `genesis`, 575 054 контура, 8 155,7 км². Основные классы
-  (`genesis_main`): aeolian 2 729,7 км², alluvial_littoral 3 506,0 км², anthropogenic 1 876,2 км², undefined 43,8 км²
+  (`genesis_main`): aeolian 2 728,5 км², alluvial_littoral 3 506,0 км², anthropogenic 1 876,2 км², undefined 43,8 км²
   (`exports/final/README.md`). Покрытие маски: 128 тайлов MGRS, 906 325 км² из 1 068 411 км² района работ.
 - Техноген и кадастр: в `exports/final/baresand_anthro_cadastre_v7.gpkg` пока слои сборки 06.10.2026 (anthro_in,
   anthro_out, anthro_excess, anthro_unreg, parcels, shift_windows; шейпы в `exports/final/anthro_shp/`). Решение автора
   13.10.2026 (вариант А): класс v7 не меняется, территория населённых пунктов считается отводом, техноген делится на три
   группы. `python/151_territory.py` -> `exports/qc/territory/territory.gpkg` (земли населённых пунктов и садоводческие
-  участки ЕГРН, жилая застройка, дачи и аэродромы OSM, вахтовые посёлки, промзоны городов; 999,5 км²) ->
-  `133 --territory` -> `exports/qc/cadastre_v7a/` (отчёт `cadastre_anthro.md`): **anthro_in** (в отводах) 995,7 км²,
-  **anthro_exceed** (превышение отвода) 264,4 км² у 11 058 контуров, **anthro_noallot** (без отвода, площадь объекта
-  целиком) 453,1 км² у 26 729 контуров; сумма 1 713,2 из 1 876,2 км² (полосы допуска и куски меньше 900 м² в группы не
+  участки ЕГРН, жилая застройка, дачи и аэродромы OSM, вахтовые посёлки, промзоны городов; 998,0 км²) ->
+  `133 --territory` -> `exports/qc/cadastre_v7a/` (отчёт `cadastre_anthro.md`): **anthro_in** (в отводах) 995,4 км²,
+  **anthro_exceed** (превышение отвода) 262,9 км² у 11 057 контуров, **anthro_noallot** (без отвода, площадь объекта
+  целиком) 455,0 км² у 26 731 контуров; сумма 1 713,3 из 1 876,2 км² (полосы допуска и куски меньше 900 м² в группы не
   входят). Проверки: 152 (просмотр внешних слоёв агентами), 153 (согласованность полей и слоёв). `exports/final` ещё не
   обновлён.
 - Точность в статье приводится только для эоловых песков: точность пользователя 94,9 %, производителя 86,0 %, F1 0,90,
@@ -194,7 +194,7 @@ unreg, nocad), cad_in_ha, cad_out_ha, cad_exc10_ha, cad_exc20_ha, cad_exc10u_ha,
 exports/final/baresand_anthro_cadastre_v7.gpkg --qc exports/qc/cadastre_v7 --label "133, v7" --cores 12 --kras`
 (отчёт `exports/qc/cadastre_v7/cadastre_anthro.md`). 92 % площади класса выделено каскадом с участием ЕГРН, поэтому
 сопоставление не является независимой проверкой класса (`exports/final/README.md`). Вариант А 13.10.2026: 151 ->
-`exports/qc/territory/territory.gpkg` (7 частей, объединение 999,5 км²; `report.md`) -> 133 с ключом `--territory` ->
+`exports/qc/territory/territory.gpkg` (7 частей, объединение 998,0 км²; `report.md`) -> 133 с ключом `--territory` ->
 `exports/qc/cadastre_v7a/` (`baresand_genesis_v7a.gpkg`, `baresand_anthro_cadastre_v7a.gpkg` со слоями anthro_in,
 anthro_exceed, anthro_noallot, parcels, shift_windows; anthro_out больше не пишется; `cadastre_anthro.md`,
 `run133.log`, участки Красноярского края подключены; полная командная строка в журнале не записана) -> 152 (снимки

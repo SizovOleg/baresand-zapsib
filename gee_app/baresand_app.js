@@ -65,7 +65,7 @@ var FEATURE_VIEWS = {
 // Ссылки (заглушки): заменить после выхода статьи и выкладки репозитория.
 var LINKS = {
   article: 'https://doi.org/10.0000/zaglushka-statyi',
-  repo: 'https://github.com/zaglushka/baresand'
+  repo: 'https://github.com/SizovOleg/baresand-zapsib'
 };
 
 // Наборы каталога GEE (проверены 13.10.2026 через ee.data.getAsset)

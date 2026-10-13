@@ -33,12 +33,11 @@ def log(msg: str) -> None:
     print(f'[{time.strftime("%H:%M:%S")}] {msg}', flush=True)
 
 
-def export_shp() -> list[str]:
-    out = FINAL / 'anthro_shp'
+def export_shp(layers: Path = LAYERS, out: Path = FINAL / 'anthro_shp') -> list[str]:
     out.mkdir(parents=True, exist_ok=True)
     lines = []
     for lay in SHP_LAYERS:
-        d = pyogrio.read_dataframe(LAYERS, layer=lay)
+        d = pyogrio.read_dataframe(layers, layer=lay)
         long = [c for c in d.columns if c != 'geometry' and len(c) > 10]
         if long:
             raise ValueError(f'{lay}: имена полей длиннее 10 знаков: {long}')
@@ -63,10 +62,15 @@ def copy_aoi() -> None:
 
 
 def main() -> None:
-    for p in (PRODUCT, LAYERS):
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--layers', type=Path, default=LAYERS, help='gpkg слоёв 133 (по умолчанию итоговый)')
+    ap.add_argument('--shp-dir', type=Path, default=FINAL / 'anthro_shp', help='папка шейпов')
+    a = ap.parse_args()
+    for p in (PRODUCT, a.layers):
         if not p.exists():
             raise FileNotFoundError(p)
-    shp = export_shp()
+    shp = export_shp(a.layers, a.shp_dir)
     copy_aoi()
     log('README пишется отдельно (docs и цифры итоговой версии): exports/final/README.md')
     print('\n'.join(shp))

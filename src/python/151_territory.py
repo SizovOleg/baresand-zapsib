@@ -49,6 +49,8 @@ CLOSE_M = 50.0
 CAMP_CLOSE_M = 40.0
 CAMP_MIN_BLD = 5
 CAMP_RADIUS_M = 1500.0
+CAMP_MAX_IND = 0.30
+INDUSTRIAL_NAME_RE = r'УПСВ|ДНС|ЦПС|УКПГ|УППГ|КНС|(?<![а-яё])КС(?![а-яё])|площадка|промбаза|база'
 DACHA_RE = r'садовод|огородн|дачн|садово-огород'
 BLD_SKIP = {'industrial', 'storage_tank', 'hangar', 'roof', 'service', 'garages', 'garage', 'warehouse', 'tank',
             'silo', 'transformer_tower', 'shed', 'construction', 'ruins', 'container'}
@@ -121,6 +123,14 @@ def camps(np_mask: gpd.GeoSeries, osm: gpd.GeoDataFrame, cover) -> gpd.GeoDataFr
     cnt = gpd.sjoin(gpd.GeoDataFrame(geometry=b.geometry.representative_point(), crs=CRS), cl, predicate='within').groupby('index_right').size()
     cl['n_bld'] = cnt.reindex(cl.index).fillna(0).astype(int)
     cl = cl[cl['n_bld'] >= CAMP_MIN_BLD]
+    # разбор территории (13.10.2026): кластеры зданий захватывали производственные базы (ангары, склады с building=yes);
+    # кластер, лежащий в промышленных полигонах OSM на CAMP_MAX_IND и больше, не считается посёлком
+    ind = pyogrio.read_dataframe(INFRA, layer='industrial', columns=['kind'], bbox=tuple(cl.total_bounds))
+    if len(ind):
+        iu = shapely.union_all(np.asarray(ind.geometry.values))
+        share = shapely.area(shapely.intersection(np.asarray(cl.geometry.values), iu)) / cl.geometry.area.to_numpy()
+        log(f'кластеров зданий в промзонах OSM (>= {CAMP_MAX_IND:.0%}): {int((share >= CAMP_MAX_IND).sum())} из {len(cl)}')
+        cl = cl[share < CAMP_MAX_IND]
     nm = gpd.sjoin_nearest(gpd.GeoDataFrame(geometry=cl.geometry.representative_point(), crs=CRS), seeds[['name', 'geometry']], how='left')
     cl['name'] = nm.groupby(level=0)['name'].first().reindex(cl.index)
     return cl.reset_index(drop=True)
@@ -228,6 +238,10 @@ def main() -> None:
         return gpd.GeoDataFrame({'component': [name] * len(geoms), 'name': nm}, geometry=geoms, crs=CRS)
 
     sel = {k: osm[osm['kind'].eq(k)] for k in ('residential', 'allotments', 'aerodrome')}
+    # жилые полигоны OSM с названиями промысловых объектов (ошибочный тег, например «Площадка УПСВ») не берутся
+    bad = sel['residential']['name'].fillna('').str.contains(INDUSTRIAL_NAME_RE, case=False, regex=True)
+    log(f'жилых полигонов OSM с промысловыми названиями отброшено: {int(bad.sum())}')
+    sel['residential'] = sel['residential'][~bad]
     comp = pd.concat([part('np', npm), part('dacha_egrn', dcm)]
                      + [part(k, d.geometry, d['name']) for k, d in sel.items()]
                      + [part('camp', camp.geometry, camp['name']), part('urban_industrial', uind.geometry, uind['name'])],
