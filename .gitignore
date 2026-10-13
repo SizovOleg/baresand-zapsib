@@ -1,0 +1,92 @@
+# BareSand: в git только код и документы. Данные выкладываются отдельно (docs/release_files.csv, docs/DATA.md),
+# файлы больше 100 МБ GitHub в репозиторий не примет.
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# Node (прогон gee_app/_test/mock_run.js)
+node_modules/
+
+# Учётные данные и ключи: никогда не коммитить
+*.pem
+*.key
+*.p12
+credentials*.json
+client_secret*.json
+*service-account*.json
+*service_account*.json
+.config/earthengine/
+.netrc
+
+# Среда разработки, ОС, офис
+.claude/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+~$*
+*.tmp
+*.bak
+
+# Блокировки ArcGIS и GDAL
+*.sr.lock
+*.lock
+*.aux.xml
+*.ovr
+
+# Пространственные данные и архивы (лежат в выкладке на облаке)
+*.gpkg
+*.gpkg-wal
+*.gpkg-shm
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+*.qix
+*.tif
+*.tiff
+*.vrt
+*.geojson
+*.parquet
+*.pmtiles
+*.mbtiles
+*.osm.pbf
+*.pbf
+*.zip
+*.7z
+*.npy
+*.npz
+*.pkl
+*.joblib
+
+# Каталоги данных и результатов проекта (если репозиторий разложить в корень проекта)
+exports/
+vector/
+oilfields/
+scratch/
+tmp/
+
+# Журналы
+*.log
+logs/
+
+# Статья и приложение до публикации: права журнала
+*.docx
+*.doc
+
+# Мини-приложение: файлы для загрузки в ассеты и выход проб
+gee_app/upload/
+gee_app/_test/out/*
+!gee_app/_test/out/manifest.csv
+!gee_app/_test/out/scenes_snippet.js

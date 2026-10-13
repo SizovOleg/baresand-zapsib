@@ -1,0 +1,6 @@
+layer,status,n_src,n_in,n_out,tol_m,n_invalid_src,n_fixed,n_reverted,area_change_pct,max_feature_change_pct,vertices,max_vertices,n_over_max_vertices,n_empty,text_cut,fields,shp_mb,dbf_mb,zip_mb,parts,size_ok,check
+contours_v2,ok,574520,50000,50000,7.5,0,0,10443,0.1035,5.0,1438586,3183,0,0,,"id,area_ha",24.686668395996094,1.4306049346923828,17.71488666534424,".cpg,.dbf,.prj,.shp,.shx",True,OK
+genesis_v7,ok,575054,50000,50000,7.5,0,0,10443,0.1035,5.0,1436760,3183,0,0,,"id,parent_id,area_ha,genesis,gen_main,shoal_type,shoal_src,step6_rule,gen_v6,note,cad_status,cad_in_ha,cad_out_ha,exc10_ha,age2000,gcode,rule,rule_step",24.659320831298828,16.785249710083008,18.21145534515381,".cpg,.dbf,.prj,.shp,.shx",True,OK
+oilfields,ok,3098,624,624,0.0,7,0,0,0.0,0.0,47064,1494,0,0,,"name_ru,name_en,type,stage_ru,stage_en",0.7519264221191406,0.10789680480957031,0.551112174987793,".cpg,.dbf,.prj,.shp,.shx",True,OK
+osm_roads,ok,144216,50000,50000,5.0,0,0,0,0.0,0.0,264491,736,0,0,,"highway,cls,winter,name",6.706195831298828,6.675874710083008,3.991501808166504,".cpg,.dbf,.prj,.shp,.shx",True,OK
+anthro_in,ok,69705,50000,50000,7.5,0,29,23640,-0.6453,5.0,2330919,15655,0,0,,"id,grp,grp_ru,area_ha,ge_mmu,age2000",38.974369049072266,4.720903396606445,25.817320823669434,".cpg,.dbf,.prj,.shp,.shx",True,OK

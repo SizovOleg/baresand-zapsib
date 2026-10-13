@@ -1,0 +1,54 @@
+# Формат Citation File Format 1.2.0 (https://citation-file-format.github.io/).
+# ЗАГЛУШКИ: всё, что помечено TODO, заменить до публикации (DOI, соавторы, ORCID, лицензия, дата выпуска, ссылки).
+# Лицензия не выбрана (LICENSE.md), поэтому поле license не указано.
+cff-version: 1.2.0
+message: >-
+  If you use the BareSand code or data, please cite the article in preferred-citation
+  and the dataset DOI. TODO: replace placeholder DOIs and URLs before release.
+title: >-
+  BareSand: bare sand mask of the north of Western Siberia from Sentinel-2
+  and attribution of sand genesis (code and documentation)
+type: software
+version: "v7"
+# date-released: TODO (дата выпуска репозитория, формат ГГГГ-ММ-ДД)
+authors:
+  - family-names: Sizov
+    given-names: O. S.
+    affiliation: >-
+      Gubkin Russian State University of Oil and Gas (National Research University);
+      Oil and Gas Research Institute, Russian Academy of Sciences
+    # orcid: https://orcid.org/TODO
+  # TODO: соавторы (в статье: «[соавторы: уточнить]»)
+identifiers:
+  - type: doi
+    value: 10.0000/TODO-DATASET-DOI
+    description: "TODO: DOI of the data release (final layers v7, mask, primary vector)"
+  - type: url
+    value: "https://example.org/TODO-data-release"
+    description: "TODO: data release URL (cloud storage)"
+  - type: url
+    value: "https://example.org/TODO-earth-engine-app"
+    description: "TODO: Earth Engine App URL (gee_app)"
+# repository-code: TODO (адрес репозитория после публикации)
+keywords:
+  - bare sands
+  - aeolian relief
+  - genesis
+  - accuracy assessment
+  - Sentinel-2
+  - ArcticDEM
+  - Google Earth Engine
+  - Western Siberia
+preferred-citation:
+  type: article
+  title: >-
+    Updated map of bare sands in the north of Western Siberia and its accuracy assessment
+  # Название статьи на русском: «Оголённые пески севера Западной Сибири: уточнение карты и оценка точности».
+  authors:
+    - family-names: Sizov
+      given-names: O. S.
+    # TODO: соавторы
+  journal: Geodezia i Kartografia
+  year: 2026
+  doi: 10.0000/TODO-ARTICLE-DOI
+  # TODO: volume, issue, start, end после выхода статьи
