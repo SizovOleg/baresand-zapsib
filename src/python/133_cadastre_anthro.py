@@ -36,6 +36,15 @@ new / mid / old / na по доле голого песка в 2000 (bare2000_fra
 Пример (v7): PYTHONIOENCODING=utf-8 python -u python/133_cadastre_anthro.py --src ИСТОЧНИК_v7.gpkg
   --out-product exports/final/baresand_genesis_v7.gpkg --out-layers exports/final/baresand_anthro_cadastre_v7.gpkg
   --qc exports/qc/cadastre_v7 --label "133, v7"
+Отводы под локальные объекты (автор 13.10.2026: «дороги и трубопроводы выпали повсеместно»; «правильно выделить все
+отводы, именно для локальных объектов»). Формальное правило по полям ЕГРН (порядок проверки):
+1) категория «земли промышленности...» -> ind; 2) категория «земли населённых пунктов» -> np (территория НП, вариант А);
+3) иная категория и объектовый ВРИ -> vri; 4) --ezp: категории и ВРИ нет, подтип «обособленный» или «условный участок»
+(часть единого землепользования; категория и ВРИ у родительского ЕЗП, которого нет в публичной выдаче НСПД) -> ezp;
+5) лесной фонд, сельхозназначение, прочее -> forest, agri, misc; категории нет и не часть ЕЗП -> unk.
+--local-max-ha X: контур (часть многоконтурного участка) групп ind, vri, ezp крупнее X га -> big (территориальная аренда
+или условный участок на весь район, а не отвод под объект); прочие контуры того же участка остаются в своей группе.
+Без флагов расчёт совпадает с v7a (группы ezp и big пусты).
 """
 import argparse
 import math
@@ -99,11 +108,15 @@ BIG_VRI_HA = 1000.0                                  # отвод vri крупн
 MIN_GAIN, MIN_SHIFT_M = 0.01, 5.0                    # сдвиг региона: выигрыш суммарного перекрытия >= 1 % и модуль >= 5 м
 # отводы под объекты; terr: территория населённых пунктов (151: замыкание земель НП, дачи, жилая застройка, аэродромы,
 # вахтовые посёлки), считается отводом целиком (вариант А, автор 13.10.2026); подаётся --territory, иначе пустая
-GROUPS_IN = ('ind', 'vri', 'np', 'terr')
-GROUPS_OUT = ('unk', 'forest', 'agri', 'misc')       # прочие участки: категория не указана, лесной фонд, сельхоз, иное
+# ezp и big заполняются только с --ezp и --local-max-ha (см. описание выше); константы общие с рабочими процессами
+GROUPS_IN = ('ind', 'vri', 'ezp', 'np', 'terr')
+GROUPS_OUT = ('big', 'unk', 'forest', 'agri', 'misc')  # прочие: крупные контуры, категория не указана, лесной фонд, сельхоз, иное
+EZP_SUBTYPES = ('Обособленный участок', 'Условный участок')
 GROUP_RU = {'ind': 'промышленные земли', 'vri': 'ВРИ под объекты в иных категориях', 'np': 'земли населённых пунктов',
+            'ezp': 'части единых землепользований (обособленные и условные участки; категория и ВРИ у родительского ЕЗП)',
             'terr': 'территория населённых пунктов вне участков (улицы, дачи, аэродромы, вахтовые посёлки)',
-            'unk': 'назначение неизвестно (части ЕЗП: обособленные и условные участки без категории и ВРИ)',
+            'big': 'крупные контуры отводов (территориальные аренды, не локальный объект)',
+            'unk': 'назначение неизвестно (участки без категории и ВРИ, не части ЕЗП; без --ezp и части ЕЗП)',
             'forest': 'лесной фонд без объектового ВРИ',
             'agri': 'сельхозназначение без объектового ВРИ', 'misc': 'иные участки (запас, ООПТ, водный фонд)',
             'none': 'вне любых участков'}
@@ -112,7 +125,7 @@ GROUP_RU = {'ind': 'промышленные земли', 'vri': 'ВРИ под 
 NEW_BARE_MAX, OLD_BARE_MIN = 0.30, 0.70
 AGE_ORDER = ('new', 'mid', 'old', 'na')
 COLS_P = {'/options/cad_num': 'cad_num', '/options/land_record_category_type': 'cat', '/options/category_name': 'cat2',
-          '/options/permitted_use_established_by_document': 'vri'}
+          '/options/permitted_use_established_by_document': 'vri', '/options/land_record_subtype': 'subtype'}
 
 
 def log(msg: str) -> None:
@@ -305,8 +318,33 @@ def run_overlay(techno: gpd.GeoDataFrame, allot: gpd.GeoDataFrame, workers: int)
 
 # ---------- основной ход ----------
 
-def load_parcels(bounds4326: tuple, techno: gpd.GeoDataFrame, files: list[Path] = PARCELS) -> gpd.GeoDataFrame:
-    """Участки регионов (files) в охвате техногенных контуров, ближе NEAR_M к ним, с группой отвода."""
+def split_big(p: gpd.GeoDataFrame, max_ha: float) -> gpd.GeoDataFrame:
+    """Контуры участков групп ind, vri, ezp крупнее max_ha -> отдельные строки группы big; прочие контуры того же
+    участка остаются одной строкой в своей группе."""
+    parts = shapely.get_parts(np.asarray(p.geometry.values), return_index=True)
+    big = np.isin(p['grp'].to_numpy()[parts[1]], ('ind', 'vri', 'ezp')) & (shapely.area(parts[0]) > max_ha * 1e4)
+    if not big.any():
+        return p
+    hit = np.unique(parts[1][big])
+    keep = np.isin(parts[1], hit) & ~big                  # мелкие контуры затронутых участков
+    gs = {i: shapely.multipolygons(parts[0][keep & (parts[1] == i)]) for i in np.unique(parts[1][keep])}
+    small = p.iloc[list(gs)].copy()
+    small['geometry'] = gpd.GeoSeries(list(gs.values()), index=small.index, crs=p.crs)
+    large = p.iloc[parts[1][big]].copy()
+    large['grp'] = 'big'
+    large['geometry'] = gpd.GeoSeries(parts[0][big], index=large.index, crs=p.crs)
+    out = gpd.GeoDataFrame(pd.concat([p.drop(index=p.index[hit]), small, large], ignore_index=True), geometry='geometry', crs=p.crs)
+    out['area_ha_p'] = (out.geometry.area / 1e4).round(1)
+    log(f'контуров крупнее {max_ha:.0f} га (группа big): {int(big.sum())} у {len(hit)} участков, '
+        f'{shapely.area(parts[0][big]).sum() / 1e6:.1f} км2')
+    return out
+
+
+def load_parcels(bounds4326: tuple, techno: gpd.GeoDataFrame, files: list[Path] = PARCELS, ezp: bool = False,
+                 local_max_ha: float | None = None) -> gpd.GeoDataFrame:
+    """Участки регионов (files) в охвате техногенных контуров, ближе NEAR_M к ним, с группой отвода.
+    ezp: части единых землепользований без категории и ВРИ считаются отводами (группа ezp), иначе unk;
+    local_max_ha: контуры отводов крупнее порога -> big (split_big)."""
     tt = shapely.STRtree(np.asarray(techno.geometry.values))
     parts = []
     for f in files:
@@ -328,12 +366,15 @@ def load_parcels(bounds4326: tuple, techno: gpd.GeoDataFrame, files: list[Path] 
     obj = ((vri.str.contains(OBJ_RE, case=False, regex=True) | vri.str.contains(OBJ_CS_RE, case=True, regex=True))
            & ~vri.str.contains(GENERIC_RE, case=False, regex=True) & ~vri.str.contains(NOT_OBJ_RE, case=False, regex=True))
     p['area_ha_p'] = (p.geometry.area / 1e4).round(1)
+    nocat = cat.eq('') | cat.str.contains('не установлена', case=False)
+    part_ezp = p['subtype'].fillna('').str.replace('\xa0', ' ').str.strip().isin(EZP_SUBTYPES) & nocat
     p['grp'] = np.select([cat.str.contains('промышленности', case=False), cat.str.contains('населенн|населённ', case=False),
                           obj, cat.str.contains('лесного', case=False),
-                          cat.str.contains('сельскохозяйствен', case=False), cat.eq('') | cat.str.contains('не установлена', case=False)],
-                         ['ind', 'np', 'vri', 'forest', 'agri', 'unk'], 'misc')
+                          cat.str.contains('сельскохозяйствен', case=False), part_ezp & ezp, nocat],
+                         ['ind', 'np', 'vri', 'forest', 'agri', 'ezp', 'unk'], 'misc')
     p['district'] = p['cad_num'].fillna('').str.split(':').str[:2].str.join(':')
-    return gpd.GeoDataFrame(p.drop(columns=['cat2']), geometry='geometry', crs=CRS)
+    p = gpd.GeoDataFrame(p.drop(columns=['cat2', 'subtype']), geometry='geometry', crs=CRS)
+    return split_big(p, local_max_ha) if local_max_ha else p
 
 
 def estimate_shifts(techno: gpd.GeoDataFrame, allot: gpd.GeoDataFrame, workers: int) -> tuple[pd.DataFrame, dict]:
@@ -465,7 +506,7 @@ def status_section(ra: pd.DataFrame) -> list[str]:
          f'учитывается площадь всего объекта. Территория населённых пунктов (улицы, дачи, аэродромы, вахтовые посёлки) считается '
          f'отводом. «Отвод под объект» здесь операционное определение (категория и ВРИ участка), а не документ об отводе объекта.', '',
          f'| Статус | контуров | км2 | внутри отводов, км2 | выход за {t10} м, км2 | выход за {t20} м, км2 | '
-         f'выход за {t10} м с частями ЕЗП, км2 |', '|---|---|---|---|---|---|---|']
+         f'выход за {t10} м с участками unk, км2 |', '|---|---|---|---|---|---|---|']
     for k in ('in', 'cross', 'unreg'):
         s = ra[ra['cad_status'] == k]
         L.append(f'| {STATUS_RU[k]} | {len(s)} | {km(s["cad_in_ha"] + s["cad_out_ha"]):.1f} | {km(s["cad_in_ha"]):.1f} | '
@@ -482,7 +523,7 @@ def status_section(ra: pd.DataFrame) -> list[str]:
           f'({km(tch["cad_in_ha"] + tch["cad_out_ha"]):.1f} км2). Чувствительность «без отвода»: у {len(a20)} контуров '
           f'({km(a20["cad_in_ha"] + a20["cad_out_ha"]):.1f} км2) отвод лежит в {t10}-{t20} м (при допуске {t20} м они стали бы '
           f'превышением или касающимися); у {len(u10)} контуров '
-          f'({km(u10["cad_in_ha"] + u10["cad_out_ha"]):.1f} км2) ближе {t10} м есть часть ЕЗП неизвестного назначения.']
+          f'({km(u10["cad_in_ha"] + u10["cad_out_ha"]):.1f} км2) ближе {t10} м есть участок без категории и ВРИ (unk).']
     # доля контура в отводе: малая доля = отдельный объект без отвода, касающийся чужого отвода краем
     share = cr['cad_in_ha'] / (cr['cad_in_ha'] + cr['cad_out_ha'])
     bins = pd.cut(share, [0, 0.1, 0.5, 0.9, 1.0001], right=False, labels=['меньше 10 %', '10-50 %', '50-90 %', '90 % и больше'])
@@ -558,6 +599,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                     help='gpkg со слоем territory (151): территория населённых пунктов, считается отводом (группа terr)')
     ap.add_argument('--touch-frac', type=float, default=TOUCH_FRAC,
                     help=f'контур с долей в отводе меньше этой и частью за допуском: «без отвода» (по умолчанию {TOUCH_FRAC})')
+    ap.add_argument('--ezp', action='store_true',
+                    help='части единых землепользований (обособленные и условные участки без категории и ВРИ) считать отводами')
+    ap.add_argument('--local-max-ha', type=float, default=None,
+                    help='контуры отводов ind, vri, ezp крупнее этого, га: территориальная аренда (группа big), не отвод')
     a = ap.parse_args(argv)
     if a.cores < 0:
         ap.error('--cores: нужно 0 или положительное число')
@@ -604,7 +649,7 @@ def main(argv: list[str] | None = None) -> None:
         if not PARCELS_KRAS.exists():
             raise FileNotFoundError(f'--kras: нет {PARCELS_KRAS}')
         files.append(PARCELS_KRAS)
-    parcels0 = load_parcels(tuple(tc.to_crs(4326).total_bounds), tc, files)
+    parcels0 = load_parcels(tuple(tc.to_crs(4326).total_bounds), tc, files, a.ezp, a.local_max_ha)
     log(f'участков у техногенных контуров: {len(parcels0)}; по группам: {parcels0["grp"].value_counts().to_dict()}')
 
     objs0 = parcels0[parcels0['grp'].isin(GROUPS_IN)].reset_index(drop=True)
@@ -667,9 +712,9 @@ def main(argv: list[str] | None = None) -> None:
     f[area_cols] = f[area_cols].round(4)
     f['cad_out_frac'] = (f['cad_out_ha'] / (f['cad_in_ha'] + f['cad_out_ha'])).round(4)
     exc_cols = [f'cad_exc{int(d)}_ha' for d in EXC_T] + [f'cad_exc{int(EXC_T[0])}u_ha']
-    order = ['cad_cov', 'cad_n', 'cad_in_ha', 'cad_ind_ha', 'cad_vri_ha', 'cad_np_ha', 'cad_terr_ha', 'cad_out_ha', 'cad_unk_ha',
-             'cad_forest_ha', 'cad_agri_ha', 'cad_misc_ha', 'cad_none_ha', 'cad_out_frac', 'cad_in0_ha', 'cad_status',
-             *exc_cols, 'age2000']
+    order = ['cad_cov', 'cad_n', 'cad_in_ha', 'cad_ind_ha', 'cad_vri_ha', 'cad_ezp_ha', 'cad_np_ha', 'cad_terr_ha', 'cad_out_ha',
+             'cad_big_ha', 'cad_unk_ha', 'cad_forest_ha', 'cad_agri_ha', 'cad_misc_ha', 'cad_none_ha', 'cad_out_frac', 'cad_in0_ha',
+             'cad_status', *exc_cols, 'age2000']
     g = attach_fields(g, f, order)
     if len(g) != pyogrio.read_info(src, layer='genesis')['features']:
         raise RuntimeError('число строк продукта изменилось при добавлении полей')
@@ -738,6 +783,12 @@ def main(argv: list[str] | None = None) -> None:
          f'Продукт {src_tag}, класс anthropogenic: {len(techno)} контуров, {techno.geometry.area.sum() / 1e6:.1f} км2; без кадастра '
          f'(Красноярский край): {int((techno["cad_cov"] == 0).sum())} контуров, {techno.loc[techno["cad_cov"] == 0].geometry.area.sum() / 1e6:.1f} км2.',
          f'Участков ЕГРН у техногенных контуров (ближе {NEAR_M:.0f} м): {len(parcels0)} ({parcels0["grp"].value_counts().to_dict()}).', '',
+         'Правило отвода под локальный объект (поля ЕГРН, по порядку): категория «земли промышленности...» (ind); земли '
+         'населённых пунктов (np) и территория НП (terr, вариант А); иная категория и объектовый ВРИ (vri); '
+         + ('части единых землепользований: обособленные и условные участки без категории и ВРИ, назначение у родительского ЕЗП (ezp, --ezp); '
+            if a.ezp else 'части единых землепользований отводом не считаются (unk); ')
+         + (f'контуры ind, vri, ezp крупнее {a.local_max_ha:.0f} га не отвод под объект, а территориальная аренда (big).'
+            if a.local_max_ha else 'порога размера контура нет.'), '',
          '## Привязка', '',
          f'Окон {len(w)} (4 x 4 км, растр {RES} м, поиск +-{MAXSHIFT_M:.0f} м). Лучший сдвиг отдельного окна улучшает '
          f'перекрытие меньше чем на 5 % в {(w["gain"] < 1.05).mean():.0%} окон: отводы крупнее контуров, поверхность почти '
@@ -758,7 +809,7 @@ def main(argv: list[str] | None = None) -> None:
           '| Показатель | км2 | доля |', '|---|---|---|',
           f'| техногенные всего | {tot:.1f} | 100 % |',
           f'| внутри отводов под объекты | {km(res["cad_in_ha"]):.1f} | {km(res["cad_in_ha"]) / tot:.1%} |',
-          f'| то же с частями ЕЗП неизвестного назначения (верхняя граница) | {km(res["cad_in_ha"] + res["cad_unk_ha"]):.1f} | '
+          f'| то же с участками unk (без категории и ВРИ; верхняя граница) | {km(res["cad_in_ha"] + res["cad_unk_ha"]):.1f} | '
           f'{km(res["cad_in_ha"] + res["cad_unk_ha"]) / tot:.1%} |',
           f'| справочно: пересечение с отводами vri крупнее {BIG_VRI_HA:.0f} га (с двойным счётом) | {big_km2:.1f} | |']
     for gname in GROUPS_IN:
