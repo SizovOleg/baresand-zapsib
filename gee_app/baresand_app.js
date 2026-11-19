@@ -1,8 +1,9 @@
 /*
  * BareSand: оголённые пески севера Западной Сибири.
- * Мини-приложение Google Earth Engine (Code Editor, ui API, JavaScript ES5). Версия 2026-10-13.
+ * Мини-приложение Google Earth Engine (Code Editor, ui API, JavaScript ES5). Версия 2026-11-18.
  *
- * Данные: итоговые слои v7 (exports/final/README.md), первичная маска и первичный вектор (22_mosaic_export.js,
+ * Данные: итоговые слои v7 (exports/final/README.md), кадастровые группы техногенных песков v7b (03.11.2026,
+ * exports/qc/cadastre_v7b/cadastre_anthro.md), первичная маска и первичный вектор (22_mosaic_export.js,
  * python/30_vectorize_local.py), сцены Sentinel-2 по тайлам (exports/aux/tile_scenes.csv, python/126_tile_scenes.py).
  * Статья: docs/article_v2/draft_v2_final.md, приложение: docs/article_v2/supplement_v2_final.md.
  * Подготовка файлов к загрузке: repo/gee_app/prepare_assets.py. Загрузка ассетов и публикация App: repo/gee_app/README.md.
@@ -63,10 +64,11 @@ var FEATURE_VIEWS = {
   anthroNoallot: ''
 };
 
-// Ссылки (заглушки): заменить после выхода статьи и выкладки репозитория.
+// Ссылки в панели: пустая строка = ссылка не показывается. Вписать DOI статьи после выхода и адрес репозитория, когда
+// он будет открыт (сейчас закрыт: https://github.com/SizovOleg/baresand-zapsib).
 var LINKS = {
-  article: 'https://doi.org/10.0000/zaglushka-statyi',
-  repo: 'https://github.com/SizovOleg/baresand-zapsib'
+  article: '',
+  repo: ''
 };
 
 // Наборы каталога GEE (проверены 13.10.2026 через ee.data.getAsset)
@@ -181,15 +183,33 @@ var AGE_RU = {
   na: 'нет данных Hansen'
 };
 
-// Кадастровые классы техногенных песков (решение автора 13.10.2026)
+// Кадастровые классы техногенных песков (решение автора 13.10.2026, редакция v7b 03.11.2026; числа:
+// exports/qc/cadastre_v7b/cadastre_anthro.md)
 var CAD_CLASSES = [
   {key: 'anthroIn', fv: 'anthroIn', title: 'В отводах', fill: '2B8CBE', line: '1B5E87',
-   note: 'включая полосы дорог и трубопроводов (части единых землепользований) и всю территорию населённых пунктов, вахтовых посёлков, дач, аэродромов'},
+   note: 'части техногенных контуров внутри отводов под объекты, включая полосы дорог и трубопроводов (части ' +
+         'единых землепользований) и всю территорию населённых пунктов, вахтовых посёлков, дач, аэродромов: ' +
+         '1 101,8 км², 58,7 % класса; показаны части не меньше 900 м²'},
   {key: 'anthroExceed', fv: 'anthroExceed', title: 'Превышение отвода', fill: 'FF7F00', line: 'B35900',
-   note: 'у объекта есть отвод, часть объекта дальше допуска 10 м'},
+   note: 'у объекта есть отвод, часть объекта дальше допуска 10 м: 11 481 объект, за пределами отводов 243,0 км²'},
   {key: 'anthroNoallot', fv: 'anthroNoallot', title: 'Объекты без отвода', fill: 'D7301F', line: '8E1B10',
-   note: 'отвода ближе 10 м нет или в участке меньше 10 % контура; показан весь объект'}
+   note: 'отвода ближе 10 м нет или в участке меньше 10 % контура; показан весь объект: 18 575 объектов, 349,3 км²'}
 ];
+// Коды полей кадастровых слоёв (133: GROUP_RU; kind_ru)
+var GRP_RU = {
+  ind: 'земли промышленности',
+  vri: 'ВРИ под объекты в иных категориях',
+  ezp: 'часть единого землепользования (категория и ВРИ у родительского участка)',
+  np: 'земли населённых пунктов',
+  terr: 'территория населённого пункта вне участков (улицы, дачи, аэродромы, вахтовые посёлки)',
+  big: 'отвод крупнее 1000 га (территориальная аренда, не локальный объект)',
+  unk: 'участок без категории и ВРИ',
+  forest: 'лесной фонд без объектового ВРИ',
+  agri: 'сельхозназначение без объектового ВРИ',
+  misc: 'иной участок (запас, ООПТ, водный фонд)',
+  none: 'участков ЕГРН нет'
+};
+var KIND_RU = {none: 'отвода ближе 10 м нет', touch: 'касается чужого отвода (в отводе меньше 10 % контура)'};
 
 // Растры плотности: «суммарная площадь, га/км²», способ центроидов (python/145_distribution_map.py, шкалы SCALES:
 // share для ячейки 10 км, 2022 для ячеек 250 м и 1 км; цвета рис. 1 статьи 2022 г.)
@@ -206,7 +226,7 @@ var DENSITY = [
   {asset: 'densityAeolian1000', label: 'эоловые, ячейка 1 км', scale: 'y2022'},
   {asset: 'densityAeolian250', label: 'эоловые, ячейка 250 м', scale: 'y2022'},
   {asset: 'densityAnthro10000', label: 'техногенные, ячейка 10 км', scale: 'share'}
-];
+].filter(function(d) { return isSet(ASSETS[d.asset]); });   // варианты без ассета в список не попадают
 
 // Синтезы Sentinel-2: каналы и пределы как в gee_scripts/21_production_classify.js
 var S2_VIS = {
@@ -214,20 +234,23 @@ var S2_VIS = {
   nat: {label: 'Натуральные цвета (B4, B3, B2)', vis: {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}},
   swir: {label: 'SWIR (B12, B11, B4)', vis: {bands: ['B12', 'B11', 'B4'], min: 0, max: 4000}}
 };
+// Статус сцены реестра (ревью Astra 13.10.2026: совпадение по охвату и облачности не доказывает, что маска построена
+// по этой сцене, поэтому «совместима», а не «совпала»)
 var SCENE_STATUS_RU = {
-  ok: 'сцена реестра совпала со следом ассета маски по охвату и облачности',
-  fp: 'сцена реестра совпала со следом ассета маски по охвату, но не по облачности',
-  alt: 'сцена реестра не совпала со следом ассета маски; ниже кандидаты, совпавшие по охвату и облачности',
-  no: 'сцена реестра не совпала со следом ассета маски; кандидатов не найдено',
+  ok: 'сцена реестра совместима со следом ассета маски по охвату и облачности (что маска построена по ней, ' +
+      'не установлено)',
+  fp: 'сцена реестра совместима со следом ассета маски по охвату, но не по облачности',
+  alt: 'сцена реестра не совместима со следом ассета маски; в списке сцены, совместимые с ним по охвату и облачности',
+  no: 'сцена реестра не совместима со следом ассета маски; совместимых сцен не найдено',
   na: 'след ассета маски не ограничен, сверка невозможна'
 };
+var SCENE_SHORT_RU = {ok: 'совместима со следом маски', fp: 'совместима только по охвату', alt: 'не совместима',
+                      no: 'не совместима', na: 'не сверялась'};
 
-// Дороги OSM (поле cls, python/60_step3_osm_extract.py): цвет, толщина, масштаб показа
+// Дороги OSM (поле cls, python/60_step3_osm_extract.py): цвет, толщина, масштаб показа. В ассете roads (150) только
+// основные дороги (highway trunk, primary, secondary, tertiary и съезды), cls = major; winter = 1 у зимников.
 var ROADS = [
-  {cls: 'major', label: 'основные', color: '3a3a3a', width: 2, zoom: 5},
-  {cls: 'minor', label: 'прочие', color: '7a7a7a', width: 1, zoom: 9},
-  {cls: 'track', label: 'грунтовые (track)', color: 'a0785a', width: 1, zoom: 10},
-  {cls: 'path', label: 'тропы', color: 'b8b8b8', width: 1, zoom: 12}
+  {cls: 'major', label: 'основные (trunk, primary, secondary, tertiary)', color: '3a3a3a', width: 2, zoom: 5}
 ];
 var HANSEN_MODES = {
   first: 'композит около 2000 г. (SWIR1, NIR, красный)',
@@ -511,9 +534,10 @@ function assetState(path) {
   return state.assets[path] || 'pending';
 }
 
-// Асинхронная проверка: ассет есть и доступен (для App ассеты нужно открыть на чтение, README)
+// Асинхронная проверка: ассет есть и доступен (для App ассеты нужно открыть на чтение, README). Ответ «нет» не
+// запоминается навсегда: при следующем включении слоя ассет проверяется снова (временная ошибка доступа).
 function checkAsset(path) {
-  if (!isSet(path) || state.assets[path]) return;
+  if (!isSet(path) || state.assets[path] === 'ok' || state.assets[path] === 'pending') return;
   state.assets[path] = 'pending';
   ee.data.getAsset(path, function(result, error) {
     state.assets[path] = (result && !error) ? 'ok' : 'missing';
@@ -557,6 +581,20 @@ function regIds() {
 }
 var S2_REG = ee.ImageCollection(CATALOG.s2).filter(ee.Filter.inList('system:index', regIds()));
 
+// Сцена тайла для обзорной мозаики: сцена реестра, если она совместима со следом ассета маски (ok, fp) или других
+// кандидатов нет, иначе первый кандидат, совместимый со следом. Проверка 18.11.2026: такая мозаика закрывает 89 %
+// покрытия маски, мозаика сцен реестра 45 % (у многих тайлов сцена реестра узкая полоса на краю витка).
+function compatId(r) {
+  return (r.v === 'ok' || r.v === 'fp' || !r.c.length) ? r.s : r.c[0];
+}
+var S2_COMPAT = ee.ImageCollection(CATALOG.s2).filter(ee.Filter.inList('system:index', SCENES.map(compatId)));
+
+function s2Collection() {
+  if (state.s2tile === 'ALL') return S2_COMPAT;
+  if (state.s2tile === 'REG') return S2_REG;
+  return ee.ImageCollection(CATALOG.s2).filter(ee.Filter.eq('system:index', state.s2scene));
+}
+
 function sceneByTile(t) {
   for (var i = 0; i < SCENES.length; i++) if (SCENES[i].t === t) return SCENES[i];
   return null;
@@ -564,22 +602,24 @@ function sceneByTile(t) {
 
 // --- 1. Исходные снимки ---
 addLayer({
-  id: 's2', group: 1, title: 'Сцены Sentinel-2 (реестр 126)', on: false, opacity: 1,
+  id: 's2', group: 1, title: 'Сцены Sentinel-2', on: false, opacity: 1,
   make: function() {
     var vis = S2_VIS[state.s2combo].vis;
-    if (state.s2tile === 'ALL') return S2_REG.mosaic().visualize(vis);
+    if (state.s2tile === 'ALL' || state.s2tile === 'REG') return s2Collection().mosaic().visualize(vis);
     return ee.Image(CATALOG.s2 + '/' + state.s2scene).visualize(vis);
   },
   key: function() { return [state.s2tile, state.s2scene, state.s2combo].join('|'); },
+  // карточка описывает показанные сцены (мозаики или выбранную сцену тайла)
   query: function(pt) {
-    return S2_REG.filterBounds(pt).aggregate_array('system:index');
+    return s2Collection().filterBounds(pt).aggregate_array('system:index');
   },
   render: function(ids) {
-    if (!ids || !ids.length) return [['Сцена', 'вне сцен реестра']];
+    if (!ids || !ids.length) return [['Сцена', 'вне показанных сцен']];
     return ids.map(function(id) {
       var tile = id.slice(-5);
       var rec = sceneByTile(tile);
-      return ['Сцена ' + tile, sceneDate(id) + ', ' + id + (rec ? '; сверка: ' + rec.v : '')];
+      var kind = rec && id === rec.s ? 'сцена реестра, ' + SCENE_SHORT_RU[rec.v] : 'кандидат, совместим со следом маски';
+      return ['Сцена ' + tile, sceneDate(id) + ' (' + kind + '); ' + id];
     });
   }
 });
@@ -598,7 +638,7 @@ addLayer({
     }
     return null;
   },
-  why: 'видно с масштаба ' + Z_MASK + ' (на мелких масштабах нужен растр классов genesis_v7_r10)',
+  why: 'видно с масштаба ' + Z_MASK + ' (на мелких масштабах нужен растр классов genesis_r50)',
   key: function(z) { return z >= Z_MASK ? 'hi' : 'lo'; },
   legend: function() {
     return legendRows([['FFD700', 'песок (gee_scripts/22_mosaic_export.js; с масштаба ' + Z_MASK +
@@ -626,7 +666,10 @@ addLayer({
   query: function(pt, buf) { return nearestDict(ASSETS.contours, pt, buf); },
   render: function(p) {
     if (!p) return [['Контур', 'нет в радиусе клика']];
-    return [['id', String(p.id)], ['Площадь', haText(p.area_ha)]];
+    // в ассете 150 у первичного вектора только id; площадь контура показывает итоговый слой генезиса
+    var rows = [['id', String(p.id)]];
+    if (p.area_ha !== null && p.area_ha !== undefined && p.area_ha !== '') rows.push(['Площадь', haText(p.area_ha)]);
+    return rows;
   }
 });
 
@@ -672,7 +715,11 @@ addLayer({
     return vis;
   },
   legend: function() { return genesisLegend(); },
-  query: function(pt, buf) { return nearestDict(ASSETS.genesis, pt, buf); },
+  // запрос только по включённым в легенде классам
+  query: function(pt, buf) {
+    return nearestDict(ee.FeatureCollection(ASSETS.genesis).filter(ee.Filter.inList('gcode', codesList(state.classes))),
+                       pt, buf);
+  },
   render: function(p) { return genesisRows(p); }
 });
 
@@ -760,7 +807,7 @@ addLayer({
     if (z < Z_TILES || assetState(ASSETS.tiles) !== 'ok') return null;
     var fc = ee.FeatureCollection(ASSETS.tiles);
     var img = ee.Image().byte().paint(fc, 1, 1).selfMask().visualize({palette: ['6b6f76']});
-    if (state.s2tile !== 'ALL') {
+    if (state.s2tile !== 'ALL' && state.s2tile !== 'REG') {
       img = ee.ImageCollection([img, ee.Image().byte().paint(fc.filter(ee.Filter.eq('tile', state.s2tile)), 1, 3)
         .selfMask().visualize({palette: [C.accent.substr(1)]})]).mosaic();
     }
@@ -889,9 +936,10 @@ function canQuery(L) {
   return need.every(function(a) { return assetState(a) === 'ok'; });
 }
 
-// Ближайший к точке объект таблицы в радиусе buf (м); внутри полигона расстояние 0. Возвращает словарь или null.
+// Ближайший к точке объект таблицы (путь ассета или ee.FeatureCollection) в радиусе buf (м); внутри полигона
+// расстояние 0. Возвращает словарь или null.
 function nearestDict(asset, pt, buf) {
-  var fc = ee.FeatureCollection(asset);
+  var fc = typeof asset === 'string' ? ee.FeatureCollection(asset) : asset;
   var hits = buf > 0 ? fc.filterBounds(pt.buffer(buf)) : fc.filterBounds(pt);
   var first = ee.Feature(hits.map(function(f) {
     return f.set('_dist', f.geometry().distance(pt, 1));
@@ -995,12 +1043,17 @@ function genesisRows(p) {
   }
   if (p.rule_step) rows.push(['Шаг', STEP_RU[p.rule_step] || String(p.rule_step)]);
   if (p.step6_rule && p.step6_rule !== p.rule) {
-    rows.push(['Проверка, перенос', (RULE_RU[p.step6_rule] || p.step6_rule) + ' [' + p.step6_rule + ']']);
+    rows.push(['Происхождение класса', (RULE_RU[p.step6_rule] || p.step6_rule) + ' [' + p.step6_rule + ']']);
+  } else if (!p.rule) {
+    // step6_rule пуст: класс дан каскадом правил и позже не менялся (ассет 150 не содержит кода правила каскада)
+    rows.push(['Происхождение класса', 'каскад правил (шаги 1-5)']);
   }
   if (p.note) rows.push(['Метка автора', p.note]);
   if (p.gen_v6 && p.gen_v6 !== p.genesis) rows.push(['Класс до исправлений v7', classLabel(p.gen_v6)]);
-  if (p.genesis === 'anthropogenic') {
-    rows.push(['Кадастровый статус', p.cad_status ? (CAD_STATUS_RU[p.cad_status] || p.cad_status) : 'нет данных']);
+  if (p.genesis === 'anthropogenic' && !p.cad_status) {
+    rows.push(['Кадастр', 'включите слои «Техногенные пески и кадастровые отводы ЕГРН»']);
+  } else if (p.genesis === 'anthropogenic') {
+    rows.push(['Кадастровый статус', CAD_STATUS_RU[p.cad_status] || p.cad_status]);
     if (p.cad_in_ha !== null && p.cad_in_ha !== undefined && p.cad_in_ha !== '') {
       rows.push(['В отводах / вне', haText(p.cad_in_ha) + ' / ' + haText(p.cad_out_ha)]);
     }
@@ -1014,19 +1067,30 @@ function genesisRows(p) {
 // Подписи известных полей кадастровых слоёв (133); прочие поля показываются как есть
 var FIELD_RU = {
   area_ha: 'Площадь', in_ha: 'В отводе', ctr_ha: 'Площадь контура', in_pct: 'Доля в отводе, %',
-  grp_ru: 'Группа участка', under_ru: 'Под объектом', age2000: 'Возраст поверхности', id: 'id контура'
+  grp_ru: 'Группа участка', under_ru: 'Под объектом', grp: 'Группа участка', under: 'Под объектом',
+  kind: 'Вид', kind_ru: 'Вид', age2000: 'Возраст поверхности', id: 'id контура'
 };
-var FIELD_SKIP = {_dist: 1, grp: 1, under: 1, ge_mmu: 1, system_index: 1};
+var FIELD_SKIP = {_dist: 1, ge_mmu: 1, system_index: 1};
+// Порядок строк карточки: известные поля первыми, прочие следом
+var FIELD_ORDER = ['kind_ru', 'kind', 'grp_ru', 'grp', 'under_ru', 'under', 'area_ha', 'in_ha', 'ctr_ha', 'in_pct',
+                   'age2000', 'id'];
 
 function genericRows(p, title) {
   if (!p) return [[title, 'нет объекта в радиусе клика']];
   var rows = [];
-  Object.keys(p).forEach(function(k) {
-    if (FIELD_SKIP[k] || k.indexOf('system:') === 0) return;
+  // коды не дублируют русские поля, если те есть в ассете
+  var skip = {grp: !!p.grp_ru, under: !!p.under_ru, kind: !!p.kind_ru};
+  var keys = FIELD_ORDER.filter(function(k) { return k in p; })
+    .concat(Object.keys(p).filter(function(k) { return FIELD_ORDER.indexOf(k) < 0; }));
+  keys.forEach(function(k) {
+    if (FIELD_SKIP[k] || skip[k] || k.indexOf('system:') === 0) return;
     var v = p[k];
     if (v === null || v === undefined || v === '') return;
     if (k.slice(-3) === '_ha') v = haText(v);
     else if (k === 'age2000') v = AGE_RU[v] || v;
+    else if (k === 'grp' || k === 'under') v = GRP_RU[v] || v;
+    else if (k === 'kind') v = KIND_RU[v] || v;
+    else if (k === 'id') v = String(v);
     else if (typeof v === 'number') v = fmt(v, v % 1 === 0 ? 0 : 2);
     rows.push([FIELD_RU[k] || k, String(v)]);
   });
@@ -1150,27 +1214,33 @@ var s2SceneSelect = ui.Select({items: [], placeholder: 'сцена', style: S.se
 s2SceneSelect.style().set('shown', false);
 
 function s2TileItems() {
-  var items = [{label: 'Все тайлы: мозаика сцен реестра (128)', value: 'ALL'}];
+  var items = [{label: 'Все тайлы: сцены, совместимые со следом маски', value: 'ALL'},
+               {label: 'Все тайлы: сцены реестра 126', value: 'REG'}];
   SCENES.forEach(function(r) {
-    items.push({label: r.t + '   ' + sceneDate(r.s) + (r.v === 'ok' ? '' : '   (не сверено)'), value: r.t});
+    items.push({label: r.t + '   ' + sceneDate(r.s) + (r.v === 'ok' ? '' : '   (сцена не подтверждена)'), value: r.t});
   });
   return items;
 }
 
 function onTile(t) {
   state.s2tile = t;
-  if (t === 'ALL') {
+  if (t === 'ALL' || t === 'REG') {
     state.s2scene = null;
     s2SceneSelect.style().set('shown', false);
     var nOk = SCENES.filter(function(r) { return r.v === 'ok'; }).length;
-    s2StatusLabel.setValue('Реестр восстановлен повторением правила выбора (python/126_tile_scenes.py); со следом ' +
-      'ассета маски по охвату и облачности совпали ' + nOk + ' из ' + SCENES.length + ' тайлов ' +
-      '(repo/gee_app/_test/scene_registry_check.csv). Выберите тайл, чтобы сравнить сцену реестра с кандидатами.');
+    var reg = 'Реестр восстановлен повторением правила выбора (python/126_tile_scenes.py); со следом ассета маски ' +
+      'по охвату и облачности совместимы его сцены у ' + nOk + ' из ' + SCENES.length + ' тайлов ' +
+      '(repo/gee_app/_test/scene_registry_check.csv). ';
+    s2StatusLabel.setValue(t === 'ALL' ?
+      'По одной сцене на тайл: сцена реестра, если она совместима со следом ассета маски, иначе первая совместимая ' +
+      'сцена; мозаика закрывает около 89 % покрытия маски. Совместимость по охвату и облачности не доказывает, что ' +
+      'маска построена по этой сцене. ' + reg + 'Выберите тайл, чтобы сравнить сцены.' :
+      reg + 'Сцена реестра у многих тайлов узкая полоса на краю витка: мозаика закрывает около 45 % покрытия маски.');
   } else {
     var rec = sceneByTile(t);
     var items = [{label: 'реестр 126: ' + sceneDate(rec.s), value: rec.s}];
     rec.c.forEach(function(id) {
-      if (id !== rec.s) items.push({label: 'кандидат по следу ассета: ' + sceneDate(id), value: id});
+      if (id !== rec.s) items.push({label: 'кандидат, совместим со следом маски: ' + sceneDate(id), value: id});
     });
     state.s2scene = rec.s;
     s2SceneSelect.items().reset(items);
@@ -1208,10 +1278,10 @@ panel.add(ui.Label('Маска оголённых песков по снимка
   'неопределённые. 575 054 контура, 8 155,7 км².', S.text));
 panel.add(ui.Label('Точность эоловых песков: пользователя 94,9 %, производителя 86,0 %, F1 0,90; площадь по ' +
   'эталону 3 024 км² (выборка 276 контуров, оценка для версии карты до исправлений). Техногенные пески выделены ' +
-  'как экспертный класс по косвенным признакам (OSM, ЕГРН, история поверхности, метки автора) и проверены ' +
-  'контрольными выборками.', S.small));
-panel.add(ui.Label('Щёлкните по карте, чтобы увидеть атрибуты контура: класс генезиса, площадь, правило, ' +
-  'кадастровый статус.', S.small));
+  'как экспертный класс по косвенным признакам (OSM, ЕГРН, история поверхности, метки автора), показатели ' +
+  'точности для них не приводятся.', S.small));
+panel.add(ui.Label('Щёлкните по карте, чтобы увидеть атрибуты включённых слоёв: класс генезиса, площадь и ' +
+  'происхождение класса; у кадастровых слоёв группу участка и возраст поверхности.', S.small));
 
 var GROUPS = {1: '1. ИСХОДНЫЕ СНИМКИ', 2: '2. ПЕРВИЧНЫЙ ВЕКТОР МАСКИ', 3: '3. ИТОГОВЫЕ СЛОИ', 4: '4. ДОПОЛНИТЕЛЬНЫЕ СЛОИ'};
 [1, 2, 3, 4].forEach(function(g) {
@@ -1220,6 +1290,8 @@ var GROUPS = {1: '1. ИСХОДНЫЕ СНИМКИ', 2: '2. ПЕРВИЧНЫЙ �
   var cadHeader = false;
   LAYERS.forEach(function(L) {
     if (L.group !== g) return;
+    // слой без единого заданного ассета (например, месторождения) в публичную панель не выводится
+    if (L.assets.length && L.assets.every(function(a) { return !isSet(a); })) return;
     if (L.sub === 'cad' && !cadHeader) {
       cadHeader = true;
       panel.add(ui.Label('Техногенные пески и кадастровые отводы ЕГРН', {fontSize: '12px', fontWeight: 'bold',
@@ -1234,13 +1306,13 @@ var GROUPS = {1: '1. ИСХОДНЫЕ СНИМКИ', 2: '2. ПЕРВИЧНЫЙ �
 });
 
 panel.add(divider());
-panel.add(ui.Panel([
-  ui.Label({value: 'Статья', targetUrl: LINKS.article, style: S.link}),
-  ui.Label({value: 'Репозиторий', targetUrl: LINKS.repo, style: S.link})
-], ui.Panel.Layout.flow('horizontal'), S.row));
+var links = [];
+if (LINKS.article) links.push(ui.Label({value: 'Статья', targetUrl: LINKS.article, style: S.link}));
+if (LINKS.repo) links.push(ui.Label({value: 'Репозиторий', targetUrl: LINKS.repo, style: S.link}));
+if (links.length) panel.add(ui.Panel(links, ui.Panel.Layout.flow('horizontal'), S.row));
 panel.add(ui.Label('Источники: Copernicus Sentinel-2 (ESA), JRC Global Surface Water, ArcticDEM (PGC), Hansen GFC, ' +
-  'ЕГРН (НСПД). Содержит данные © участники OpenStreetMap, ODbL 1.0. Данные v7 (06.10.2026), приложение ' +
-  '13.10.2026.', S.small));
+  'ЕГРН (НСПД). Содержит данные © участники OpenStreetMap, ODbL 1.0. Генезис v7 (06.10.2026), кадастровые ' +
+  'группы v7b (03.11.2026), приложение 18.11.2026.', S.small));
 
 // --- Карточка атрибутов (на карте) ---
 var infoBody = ui.Panel([], ui.Panel.Layout.flow('vertical'), {margin: '0', padding: '0', backgroundColor: C.card});
@@ -1292,7 +1364,7 @@ map.onClick(function(c) {
   });
   if (!any) {
     infoBody.add(ui.Label('Включите слой с атрибутами (генезис, первичный вектор, кадастровые классы, плотность, ' +
-                          'рельеф, вода, Hansen, месторождения, сцены).', S.infoVal));
+                          'рельеф, вода, Hansen, сцены).', S.infoVal));
   }
 });
 

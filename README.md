@@ -8,9 +8,9 @@ July-September 2020-2025, 128 tiles covering 906,325 km² of a 1,068,411 km² st
 unit, and attributed by a rule cascade (GSW, MERIT Hydro, ArcticDEM, OpenStreetMap, Russian cadastre, surface history)
 followed by expert review and model-based label transfer. Final layer v7 (06.10.2026): 575,054 contours, 8,155.7 km².
 
-- **Status:** draft for discussion (13.10.2026), not a release. Exact reproduction is not yet possible for an outside
-  user: no frozen-input package with checksums, no environment file, cadastre parcels are not published. See
-  "Статус и ограничения воспроизводимости" below.
+- **Status:** draft for discussion (13.10.2026; cadastre edition v7b and viewer updated 18.11.2026), not a release.
+  Exact reproduction is not yet possible for an outside user: no frozen-input package with checksums, no environment
+  file, cadastre parcels are not published. See "Статус и ограничения воспроизводимости" below.
 - **Article:** Sizov O. S., [co-authors]. Updated map of bare sands in the north of Western Siberia and its accuracy
   assessment. *Geodezia i Kartografia*, 2026 (in Russian). DOI: `TODO`.
 - **Accuracy** (reported for aeolian sands only): user's accuracy 94.9 %, producer's accuracy 86.0 %, F1 0.90,
@@ -18,14 +18,16 @@ followed by expert review and model-based label transfer. Final layer v7 (06.10.
   time (before corrections v5-v7), not to the final layer v7. Anthropogenic sands are an expert class based on indirect
   evidence, with no accuracy estimate; control samples covered only the v7 reclassifications (about 1 % of the class
   area) and residual anthropogenic sand near infrastructure, not the class as a whole.
-- **Cadastre comparison** (author's decision of 13.10.2026, variant A): settlement territory counts as an allotment;
-  anthropogenic sands split into "within allotments" (995.7 km²), "beyond the allotment" (264.4 km²) and "no
-  allotment" (453.1 km²). Computed in `exports/qc/cadastre_v7a/`, not yet moved to the final folder. This is a spatial
-  comparison, not a finding of violations.
+- **Cadastre comparison** (final edition v7b, accepted by the author on 03.11.2026): settlement territory and parts
+  of unified land holdings count as allotments, parcels larger than 1,000 ha do not. Anthropogenic sands within
+  allotments 1,101.8 km² (58.7 % of the class), beyond the allotment 243.0 km² (11,481 objects), no allotment
+  349.3 km² (18,575 objects). Files: `exports/final/*_v7b.gpkg`. This is a spatial comparison, not a finding of
+  violations.
 - **Data:** hosted outside git, `TODO: data release URL / DOI`. Contents and fields: [docs/DATA.md](docs/DATA.md),
   file list: [docs/release_files.csv](docs/release_files.csv).
-- **Interactive map:** Earth Engine App, `TODO: app URL` (assets uploaded 13.10.2026, app not yet published); source
-  and setup in [gee_app/](gee_app/README.md).
+- **Interactive map:** Earth Engine App, `TODO: app URL` (assets uploaded 13.10.2026, cadastre layers v7b
+  03.11.2026; script checked against the assets 18.11.2026; app not yet published, assets not yet shared); source and
+  setup in [gee_app/](gee_app/README.md).
 - **Reproduce:** see [docs/PIPELINE.md](docs/PIPELINE.md) (three reproduction levels) and [src/README.md](src/README.md)
   (paths). Scripts use absolute Windows paths and the author's Earth Engine project; they must be edited before
   running elsewhere. Training points of the 128 tiles exist only in the author's Earth Engine account.
@@ -45,7 +47,7 @@ Documentation is in Russian.
 песков. Здесь код (копии скриптов проекта), подробная документация и мини-приложение Google Earth Engine. Данные (маска,
 векторные слои) в git не входят и выкладываются отдельно.
 
-Состояние на 13.10.2026: черновик для показа и обсуждения, не выпуск. Итоговая версия карты v7 (сборка 06.10.2026,
+Состояние на 18.11.2026: черновик для показа и обсуждения, не выпуск. Итоговая версия карты v7 (сборка 06.10.2026,
 `exports/final/baresand_genesis_v7.gpkg`): 575 054 контура, 8 155,7 км².
 
 | Класс | Контуров | км² |
@@ -89,30 +91,33 @@ T3 проверяли только переводы эоловых контур�
 
 ### Техногенные пески и кадастровые отводы
 
-Решение автора от 13.10.2026 (вариант А): класс техногенных песков v7 не меняется (82 729 контуров, 1 876,2 км²);
-территория населённых пунктов считается отводом. Её собирает `src/python/151_territory.py`: земли населённых пунктов
-ЕГРН с замыканием 50 м, садоводческие участки ЕГРН, жилая застройка, дачные массивы и аэродромы OSM, вахтовые посёлки
-(кластеры не менее 5 зданий OSM с замыканием 40 м) и промзоны городов (промышленные полигоны OSM не далее 1 км от
-земель населённых пунктов крупнее 1 км²); объединение 998,0 км² (`exports/qc/territory/report.md`). Скрипт
-`src/python/133_cadastre_anthro.py --territory` делит техногенные пески на три группы
-(`exports/qc/cadastre_v7a/cadastre_anthro.md`):
+Итоговая редакция v7b (принята автором 03.11.2026). Класс техногенных песков v7 не меняется (82 729 контуров,
+1 876,2 км²). Отводом считаются отводы под локальные объекты, вся территория населённых пунктов и части единых
+землепользований; контуры участков крупнее 1000 га (территориальные аренды) не считаются. Территорию населённых пунктов
+собирает `src/python/151_territory.py`: земли населённых пунктов ЕГРН с замыканием 50 м, садоводческие участки ЕГРН,
+жилая застройка, дачные массивы и аэродромы OSM, вахтовые посёлки (кластеры не менее 5 зданий OSM с замыканием 40 м) и
+промзоны городов (промышленные полигоны OSM не далее 1 км от земель населённых пунктов крупнее 1 км²); объединение
+998,0 км² (`exports/qc/territory/report.md`). Скрипт `src/python/133_cadastre_anthro.py --territory --ezp
+--local-max-ha 1000` делит техногенные пески на три группы (`exports/qc/cadastre_v7b/cadastre_anthro.md`, итоговые
+файлы `exports/final/*_v7b.gpkg`):
 
-| Группа | Слой | Контуров | км² |
+| Группа | Слой | Объектов | км² |
 |---|---|---|---|
-| в отводах (части контуров «в отводе» и «превышение» внутри отводов, без двойного счёта) | `anthro_in` | 44 941 + 11 057 | 995,4 |
-| превышение отвода (отвод ближе 10 м, в отводе не меньше 10 % контура, часть дальше 10 м, куски не меньше 900 м²) | `anthro_exceed` | 11 057 | 262,9 |
-| без отвода (отвода ближе 10 м нет или контур лишь касается чужого участка; площадь объекта целиком) | `anthro_noallot` | 26 731, из них касающихся 5 757 (183,7 км²) | 455,0 |
+| в отводах (части контуров «в отводе» и «превышение» внутри отводов, без двойного счёта) | `anthro_in` | 90 887 частей | 1 096,9 |
+| превышение отвода (отвод ближе 10 м, в отводе не меньше 10 % контура, часть дальше 10 м, куски не меньше 900 м²) | `anthro_exceed` | 11 481 | 243,0 |
+| без отвода (отвода ближе 10 м нет или контур лишь касается чужого участка; площадь объекта целиком) | `anthro_noallot` | 18 575, из них касающихся 5 444 (154,6 км²) | 349,3 |
 
-Сумма трёх групп 1 713,3 км²; полосы допуска 10 м и куски меньше 900 м² в группы не входят. По статистике контуров
-внутри отводов 1 001,7 км² (53,4 % класса), вне любых участков 492,9 км² (26,3 %). Проверка согласованности слоёв
-(`python/153_check_cadastre_a.py`) пройдена. Выборочный просмотр внешних слоёв на снимках (`python/152_outside_review.py`,
-разметка агентами ИИ, не автором; `exports/qc/cadastre_v7a/review_outside/labels_agents.csv`): явный техноген вне
-населённых пунктов у 28 из 30 случайных «превышений» и 28 из 30 случайных объектов «без отвода»; среди 20 крупнейших
-«без отвода» 6 естественных песков (13,9 км²: пять ошибок каскада шага 3 и один контур с меткой автора), их класс по
-решению автора не исправлялся.
+Полосы допуска 10 м и куски меньше 900 м² в группы не входят. По статистике контуров внутри отводов 1 101,8 км² (58,7 %
+класса), из них части единых землепользований 109,0 км²; в участках крупнее 1000 га 15,4 км²; вне любых участков
+492,9 км² (26,3 %). Проверка согласованности слоёв (`python/153_check_cadastre_a.py`) пройдена: 11 из 11. Выборочный
+просмотр на снимках (`python/154_allot_review.py`, разметка агентами ИИ, не автором;
+`exports/qc/cadastre_v7b/review_allot/summary.md`): 40 из 40 частей единых землепользований лежат под объектами; среди
+30 случайных объектов без отвода у 20 объект есть, а отвода в выгрузке нет, у 2 отвод пропущен по геометрии (кусок за
+границей участка дальше допуска), 3 оказались природным песком или гарью, 5 неясны. Среди крупнейших объектов без
+отвода встречаются естественные пески и гари (ошибки шага 3 каскада), их класс по решению автора не исправлялся.
 
-Вариант А посчитан в `exports/qc/cadastre_v7a/`, итоговая папка `exports/final` пока содержит кадастровые слои сборки
-06.10.2026. Сопоставление пространственное: слои указывают места для адресной проверки и не устанавливают нарушений.
+Предыдущие редакции (сборка 06.10.2026 и вариант А от 13.10.2026) оставлены в `exports/final` с суффиксами `_v7` и
+`_v7a`. Сопоставление пространственное: слои указывают места для адресной проверки и не устанавливают нарушений.
 Подробно: [docs/METHODS.md](docs/METHODS.md), раздел 8; поля: [docs/DATA.md](docs/DATA.md), раздел 5.
 
 ### Статус и ограничения воспроизводимости
@@ -215,9 +220,10 @@ gee_app/
 Интерактивная карта Earth Engine (`TODO: адрес App`): исходные снимки Sentinel-2 по тайлам, первичный вектор маски,
 итоговые слои (генезис v7, плотность, группы техногенных песков по отводам), дополнительные слои (граница района,
 покрытие, тайлы, дороги OSM, рельеф, вода, Hansen). Ассеты загружены 13.10.2026 скриптом `150_gee_upload.py` в
-`projects/nodal-thunder-481307-u1/assets/ZapSib_baresands/app`; месторождения из публичного приложения убраны до
-выяснения лицензии. Публикует App автор в Code Editor, перед этим ассеты нужно открыть на чтение. Настройка, состав
-ассетов и известные несоответствия полей: [gee_app/README.md](gee_app/README.md).
+`projects/nodal-thunder-481307-u1/assets/ZapSib_baresands/app`, кадастровые слои v7b 03.11.2026; месторождения из
+публичного приложения убраны до выяснения лицензии. Скрипт проверен на настоящих ассетах 18.11.2026 (выражения слоёв и
+поиск по щелчку через Python API). App не опубликован, ассеты закрыты: публикует автор в Code Editor, перед этим ассеты
+нужно открыть на чтение. Настройка, состав ассетов и порядок публикации: [gee_app/README.md](gee_app/README.md).
 
 ### Известные ограничения
 

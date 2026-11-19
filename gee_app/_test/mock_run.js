@@ -106,7 +106,7 @@ const missing = process.argv.includes('--missing-raster');
 function flushAssets() {
   while (assetCalls.length) {
     const c = assetCalls.shift();
-    const bad = missing && /genesis_v7_r10/.test(c.p);
+    const bad = missing && /genesis_r50/.test(c.p);
     c.cb(bad ? null : {type: 'TABLE'}, bad ? 'not found' : undefined);
   }
 }
@@ -117,7 +117,7 @@ const boxes = all.filter((w) => w.kind === 'Checkbox');
 for (const b of boxes) { b.o.onChange(true); flushAssets(); }
 for (const b of boxes) b.o.onChange(false);
 for (const b of boxes) { b.o.onChange(true); flushAssets(); }
-console.log('чекбоксов:', boxes.length);
+console.log('чекбоксов:', boxes.length, '| слоёв в панели:', all.filter((w) => w.kind === 'Checkbox' && w.o.style && w.o.style.width === '238px').map((w) => w.o.label).join('; '));
 // все варианты всех списков
 for (const s of all.filter((w) => w.kind === 'Select')) {
   for (const it of s.items().a) { s.o.onChange(typeof it === 'object' ? it.value : it); flushAssets(); }
@@ -141,21 +141,30 @@ theMap.click({lon: 72.5, lat: 65.5});
 for (const e of evals.slice(-50)) e.cb(undefined, 'Error: asset not found');  // ошибки
 // карточки на типичных ответах
 const samples = {
-  genesis: [{id: 97550, genesis: 'anthropogenic', gen_main: 'anthropogenic', area_ha: 0.37, rule: 'v4_a_nspd_on', rule_step: 3,
+  // схема ассетов 150 (поля, прочитанные из ассетов 18.11.2026) и расширенная схема prepare_assets.py
+  genesis: [{id: 185329, genesis: 'aeolian', gcode: 1, area_ha: 0.09},
+            {id: 11, genesis: 'anthropogenic', gcode: 5, area_ha: 12.3, step6_rule: 'v7_agent_techno'},
+            {id: 12, genesis: 'shoal', gcode: 4, area_ha: 250.5, step6_rule: 'v4_transfer'},
+            {id: 97550, genesis: 'anthropogenic', gen_main: 'anthropogenic', area_ha: 0.37, rule: 'v4_a_nspd_on', rule_step: 3,
              step6_rule: '', gen_v6: 'anthropogenic', note: '', cad_status: 'in', cad_in_ha: 0.3264, cad_out_ha: 0.0436,
              exc10_ha: 0, age2000: 'new', gcode: 5},
             {id: 5, genesis: 'river_shoal', gen_main: 'alluvial_littoral', shoal_type: 'river', shoal_src: 'rule', area_ha: 1234.5,
              rule: 'v3_B1_channel_cross', rule_step: 5, step6_rule: 'v4_expert', gen_v6: 'aeolian', note: 'речная отмель'},
             {id: 7, genesis: 'aeolian', area_ha: 2, rule: 'step4', rule_step: 4}, null],
-  contours: [{id: 1, area_ha: 0.09}, null],
+  contours: [{id: 297258}, {id: 1, area_ha: 0.09}, null],
   density: [0, null, 12.5],
-  anthroIn: [{id: 1, grp: 'ind', grp_ru: 'земли промышленности', area_ha: 2.5, ge_mmu: 1, age2000: 'old', _dist: 0}, null],
-  anthroExceed: [{id: 1, area_ha: 2.5, in_ha: 1.2, ctr_ha: 4, in_pct: 48.1, age2000: 'mid'}],
-  anthroNoallot: [{id: 1, area_ha: 2.5, under_ru: 'вне участков', age2000: 'na', newfield: 'x'}],
+  anthroIn: [{age2000: 'mid', area_ha: 0.0911, grp: 'ezp', id: 392764, _dist: 0},
+             {id: 1, grp: 'ind', grp_ru: 'земли промышленности', area_ha: 2.5, ge_mmu: 1, age2000: 'old', _dist: 0}, null],
+  anthroExceed: [{age2000: 'mid', area_ha: 0.264, id: 462242, in_pct: 10},
+                 {id: 1, area_ha: 2.5, in_ha: 1.2, ctr_ha: 4, in_pct: 48.1, age2000: 'mid'}],
+  anthroNoallot: [{age2000: 'old', area_ha: 0.09, id: 28284, in_pct: 0, kind: 'none', under: 'forest'},
+                  {age2000: 'new', area_ha: 3.5, id: 28285, in_pct: 4, kind: 'touch', under: 'none'},
+                  {id: 1, area_ha: 2.5, under_ru: 'вне участков', age2000: 'na', newfield: 'x'}],
   oilfields: [{name_ru: 'Ямбургское', type: 'gas', stage_ru: 'разрабатываемое'}, null],
   dem: [15.3, null], gsw: [80, null], hansen: [{treecover2000: 12, lossyear: 5}, {treecover2000: null, lossyear: 0}, null],
   s2: [['20240705T071621_20240705T071621_T41VPK'], []], tiles: [['41VPK'], []]
 };
+const printCards = {genesis: [185329, 11], anthroIn: [392764], anthroExceed: [462242], anthroNoallot: [28284, 28285], contours: [297258]};
 let cards = 0;
 for (const l of L) {
   if (!l.render) continue;
@@ -163,7 +172,7 @@ for (const l of L) {
     const rows = l.render(smp);
     for (const r of rows) if (r.length !== 2 || typeof r[0] !== 'string' || typeof r[1] !== 'string') throw new Error('строка карточки ' + l.id + ': ' + JSON.stringify(r));
     cards++;
-    if (l.id === 'genesis' && smp && smp.id === 5) console.log('карточка генезиса:', JSON.stringify(rows));
+    if (smp && (printCards[l.id] || []).indexOf(smp.id) >= 0) console.log('карточка ' + l.id + ':', JSON.stringify(rows));
   }
 }
 console.log('карточек проверено:', cards);
