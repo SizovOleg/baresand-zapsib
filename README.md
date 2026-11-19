@@ -25,9 +25,9 @@ followed by expert review and model-based label transfer. Final layer v7 (06.10.
   violations.
 - **Data:** hosted outside git, `TODO: data release URL / DOI`. Contents and fields: [docs/DATA.md](docs/DATA.md),
   file list: [docs/release_files.csv](docs/release_files.csv).
-- **Interactive map:** Earth Engine App, `TODO: app URL` (assets uploaded 13.10.2026, cadastre layers v7b
-  03.11.2026; script checked against the assets 18.11.2026; app not yet published, assets not yet shared); source and
-  setup in [gee_app/](gee_app/README.md).
+- **Interactive map:** Earth Engine App <https://nodal-thunder-481307-u1.projects.earthengine.app/view/baresand> (published 19.11.2026 from the Code Editor script
+  users/.../sand_ZapSib/baresand_app under the Cloud project; assets are not shared publicly); source and setup in
+  [gee_app/](gee_app/README.md).
 - **Reproduce:** see [docs/PIPELINE.md](docs/PIPELINE.md) (three reproduction levels) and [src/README.md](src/README.md)
   (paths). Scripts use absolute Windows paths and the author's Earth Engine project; they must be edited before
   running elsewhere. Training points of the 128 tiles exist only in the author's Earth Engine account.
@@ -219,15 +219,16 @@ gee_app/
 
 ### Мини-приложение
 
-Интерактивная карта Earth Engine (`TODO: адрес App`): итоговые слои (генезис v7, плотность с ячейкой 10, 5 или 2 км
+Интерактивная карта Earth Engine (https://nodal-thunder-481307-u1.projects.earthengine.app/view/baresand): итоговые слои (генезис v7, плотность с ячейкой 10, 5 или 2 км
 по масштабу, группы техногенных песков по отводам), снимки Sentinel-2 по тайлам, маска и первичный вектор,
 справочные слои (граница района, покрытие, тайлы, инфраструктура OSM, рельеф, вода, Hansen), скачивание контуров
 видимой области и правая панель статистики с графиками по районам, видимой области и широтным поясам (155).
 Ассеты загружены 13.10.2026 скриптом `150_gee_upload.py` в
 `projects/nodal-thunder-481307-u1/assets/ZapSib_baresands/app`, кадастровые слои v7b 03.11.2026; месторождения из
 публичного приложения убраны до выяснения лицензии. Скрипт проверен на настоящих ассетах 18.11.2026 (выражения слоёв и
-поиск по щелчку через Python API). App не опубликован, ассеты закрыты: публикует автор в Code Editor, перед этим ассеты
-нужно открыть на чтение. Настройка, состав ассетов и порядок публикации: [gee_app/README.md](gee_app/README.md).
+поиск по щелчку через Python API) и в Code Editor. App опубликован 19.11.2026 под Cloud-проектом (доступ по ссылке,
+в галерею не добавлен); ассеты всем на чтение не открывались. Настройка, состав ассетов и порядок публикации:
+[gee_app/README.md](gee_app/README.md).
 
 ### Известные ограничения
 
