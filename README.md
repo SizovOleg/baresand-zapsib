@@ -31,8 +31,8 @@ followed by expert review and model-based label transfer. Final layer v7 (06.10.
 - **Reproduce:** see [docs/PIPELINE.md](docs/PIPELINE.md) (three reproduction levels) and [src/README.md](src/README.md)
   (paths). Scripts use absolute Windows paths and the author's Earth Engine project; they must be edited before
   running elsewhere. Training points of the 128 tiles exist only in the author's Earth Engine account.
-- **License:** not chosen yet, `TODO`; options in [LICENSE.md](LICENSE.md). Until a license is added, all rights are
-  reserved.
+- **License:** code MIT ([LICENSE](LICENSE)); documentation and data CC BY 4.0, parts derived from OpenStreetMap
+  ODbL 1.0 ([LICENSE-DATA.md](LICENSE-DATA.md)). Cadastre parcels with cadastral numbers are not published.
 - **Cite:** [CITATION.cff](CITATION.cff) (article and dataset DOI placeholders).
 
 Documentation is in Russian.
@@ -160,7 +160,8 @@ T3 проверяли только переводы эоловых контур�
 
 ```
 README.md            этот файл
-LICENSE.md           варианты лицензий (не выбраны)
+LICENSE              лицензия кода (MIT)
+LICENSE-DATA.md      лицензии документации и данных (CC BY 4.0, ODbL 1.0 для частей из OSM), атрибуция
 CITATION.cff         цитирование (заглушки DOI)
 .gitignore           данные, ключи, журналы, временные файлы не коммитятся
 docs/
@@ -240,8 +241,10 @@ gee_app/
 
 ### Лицензия
 
-Не выбрана: `TODO`. Варианты (код MIT или иная, данные CC BY 4.0, части, производные от OSM, ODbL 1.0) и обязательная
-атрибуция источников: [LICENSE.md](LICENSE.md). Пока лицензия не добавлена, все права сохраняются за автором.
+Решение автора от 19.11.2026: лицензия открытая. Код: MIT ([LICENSE](LICENSE)). Документация и данные: CC BY 4.0;
+части, производные от OpenStreetMap (слой инфраструктуры, полная версия слоя генезиса с полями из OSM): ODbL 1.0.
+Таблица по частям и атрибуция источников: [LICENSE-DATA.md](LICENSE-DATA.md). Участки ЕГРН с кадастровыми номерами не
+публикуются.
 
 ### Цитирование
 

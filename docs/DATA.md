@@ -15,7 +15,7 @@
 
 Связанные документы: алгоритмы, правила и пороги [METHODS.md](METHODS.md); стадии и порядок пересборки
 [PIPELINE.md](PIPELINE.md) (раздел 4) и [../src/README.md](../src/README.md); мини-приложение и его ассеты
-[../gee_app/README.md](../gee_app/README.md); варианты лицензий [../LICENSE.md](../LICENSE.md). Пути `python/...` даны от
+[../gee_app/README.md](../gee_app/README.md); лицензии [../LICENSE](../LICENSE) (код, MIT) и [../LICENSE-DATA.md](../LICENSE-DATA.md) (документация и данные, CC BY 4.0; части из OSM ODbL 1.0). Пути `python/...` даны от
 корня проекта; в репозитории скрипты лежат в `src/python/` и `src/gee_scripts/`.
 
 ## Содержание
@@ -706,7 +706,7 @@ GetCapabilities указано Fees none, AccessConstraints none: `python/69_ste
 
 **Лицензия продукта** (решает автор): для публичного слоя без полей OSM и ЕГРН подойдёт CC BY 4.0 с атрибуцией OSM, ЕГРН
 и Copernicus выше; для полной версии ODbL 1.0. Варианты для кода, данных и документации собраны в
-[../LICENSE.md](../LICENSE.md) (выбор не сделан).
+[../LICENSE-DATA.md](../LICENSE-DATA.md) (решение автора от 19.11.2026: CC BY 4.0, части из OSM ODbL 1.0).
 
 ## 12. Открытые вопросы
 

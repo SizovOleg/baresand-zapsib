@@ -1,6 +1,6 @@
 # Формат Citation File Format 1.2.0 (https://citation-file-format.github.io/).
-# ЗАГЛУШКИ: всё, что помечено TODO, заменить до публикации (DOI, соавторы, ORCID, лицензия, дата выпуска, ссылки).
-# Лицензия не выбрана (LICENSE.md), поэтому поле license не указано.
+# ЗАГЛУШКИ: всё, что помечено TODO, заменить до публикации (DOI, соавторы, ORCID, дата выпуска, ссылки).
+# Лицензии (19.11.2026): код MIT (LICENSE), документация и данные CC BY 4.0, части из OSM ODbL 1.0 (LICENSE-DATA.md).
 cff-version: 1.2.0
 message: >-
   If you use the BareSand code or data, please cite the article in preferred-citation
@@ -10,6 +10,9 @@ title: >-
   and attribution of sand genesis (code and documentation)
 type: software
 version: "v7"
+license:
+  - MIT
+  - CC-BY-4.0
 # date-released: TODO (дата выпуска репозитория, формат ГГГГ-ММ-ДД)
 authors:
   - family-names: Sizov
@@ -27,7 +30,7 @@ identifiers:
     value: "https://example.org/TODO-data-release"
     description: "TODO: data release URL (cloud storage)"
   - type: url
-    value: "https://example.org/TODO-earth-engine-app"
+    value: "https://nodal-thunder-481307-u1.projects.earthengine.app/view/baresand"
     description: "TODO: Earth Engine App URL (gee_app)"
 # repository-code: TODO (адрес репозитория после публикации)
 keywords:
