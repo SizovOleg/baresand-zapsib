@@ -59,7 +59,8 @@ Documentation is in Russian.
 
 Источник: `exports/final/README.md`, приложение к статье S8; подробно в [docs/DATA.md](docs/DATA.md), раздел 3.
 
-Кратко о методе (подробно: [docs/METHODS.md](docs/METHODS.md)):
+Кратко о методе (для читателя: [docs/INTERPRETATION.md](docs/INTERPRETATION.md), методика дешифрирования; все
+алгоритмы и пороги: [docs/METHODS.md](docs/METHODS.md)):
 1. Классификация отдельных сцен Sentinel-2 L2A (`COPERNICUS/S2_SR_HARMONIZED`): одна сцена на тайл MGRS, июль-сентябрь
    2020-2025, облачность сцены меньше 15 %; предфильтр по MNDWI и NDVI и бинарный случайный лес по обучающим точкам
    автора; 128 тайлов, 906 325 км² из 1 068 411 км² района работ.
@@ -185,6 +186,7 @@ gee_app/
 |---|---|
 | какие скрипты в каком порядке запускать | [docs/PIPELINE.md](docs/PIPELINE.md) (раздел 4), кратко [src/README.md](src/README.md) |
 | что делает каждый скрипт | docstring скрипта, [docs/scripts_manifest.csv](docs/scripts_manifest.csv) |
+| методика дешифрирования для читателя карты | [docs/INTERPRETATION.md](docs/INTERPRETATION.md) |
 | правила каскада, пороги, формулы | [docs/METHODS.md](docs/METHODS.md) |
 | поля и коды итоговых слоёв, лицензии | [docs/DATA.md](docs/DATA.md) |
 | что выкладывается на облако | [docs/release_files.csv](docs/release_files.csv), [docs/DATA.md](docs/DATA.md) (раздел 10) |
@@ -227,7 +229,8 @@ gee_app/
 
 ### Известные ограничения
 
-- Реестр сцен Sentinel-2 восстановлен повторением правила выбора и подтверждается только у части тайлов (выше).
+- Исходные сцены Sentinel-2 точно установлены только у 10 тайлов из 128: облачность в ассетах масок записана как 0 %,
+  а в текущем каталоге у сцен с тем же охватом она обычно 0,0001-0,001 % ([gee_app/README.md](gee_app/README.md), раздел 7).
 - Поле `not_sand_suspect` в итоговом слое имеет два смысла ([docs/DATA.md](docs/DATA.md), раздел 4.2).
 - Расхождения реализации с инвариантами проекта (порядок каскада, сшивка перекрытий, состав обучающих точек, общий
   config): [docs/METHODS.md](docs/METHODS.md), раздел 10.3; [docs/PIPELINE.md](docs/PIPELINE.md), раздел 9.

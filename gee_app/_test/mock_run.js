@@ -63,6 +63,7 @@ class UiMap extends Widget {
   constructor() { super('Map', {}); this._layers = new List(); this.widgetsOn = []; }
   layers() { return this._layers; }
   setOptions() {} setControlVisibility() {} setCenter() {} centerObject() {}
+  getBounds() { return [74.1, 63.0, 75.9, 63.6]; }
   add(w) { this.widgetsOn.push(w); }
   onClick(cb) { this.click = cb; } onChangeZoom(cb) { this.zoomCb = cb; }
 }
@@ -117,7 +118,7 @@ const boxes = all.filter((w) => w.kind === 'Checkbox');
 for (const b of boxes) { b.o.onChange(true); flushAssets(); }
 for (const b of boxes) b.o.onChange(false);
 for (const b of boxes) { b.o.onChange(true); flushAssets(); }
-console.log('чекбоксов:', boxes.length, '| слоёв в панели:', all.filter((w) => w.kind === 'Checkbox' && w.o.style && w.o.style.width === '238px').map((w) => w.o.label).join('; '));
+console.log('чекбоксов:', boxes.length, '| слоёв в панели:', all.filter((w) => w.kind === 'Checkbox' && w.o.style && w.o.style.fontSize === '14px').map((w) => w.o.label).join('; '));
 // все варианты всех списков
 for (const s of all.filter((w) => w.kind === 'Select')) {
   for (const it of s.items().a) { s.o.onChange(typeof it === 'object' ? it.value : it); flushAssets(); }
@@ -125,11 +126,18 @@ for (const s of all.filter((w) => w.kind === 'Select')) {
 // конкретный тайл и сцена-кандидат
 const tileSel = all.find((w) => w.kind === 'Select' && w.items().a.some((i) => i.value === 'ALL'));
 tileSel.o.onChange('45WVQ');
-const sceneSel = all.find((w) => w.kind === 'Select' && w.items().a.some((i) => /кандидат/.test(i.label)));
+const sceneSel = all.find((w) => w.kind === 'Select' && w.items().a.some((i) => /одна из совпавших/.test(i.label)));
 console.log('сцен у 45WVQ в списке:', sceneSel ? sceneSel.items().a.length : 0);
 if (sceneSel) sceneSel.o.onChange(sceneSel.items().a[1].value);
 // слайдеры
 for (const s of all.filter((w) => w.kind === 'Slider')) s.o.onChange(0.3);
+// кнопки (скачивание контуров): нажать и ответить на подсчёт
+for (const b of all.filter((w) => w.kind === 'Button' && w.o.onClick)) {
+  const n0 = evals.length;
+  b.o.onClick();
+  for (const e of evals.slice(n0)) e.cb(1234, undefined);
+}
+console.log('кнопок нажато:', all.filter((w) => w.kind === 'Button' && w.o.onClick).length);
 // масштабы
 for (const z of [3, 5, 8, 9, 10, 11, 14, 6]) theMap.zoomCb(z);
 // щелчок
