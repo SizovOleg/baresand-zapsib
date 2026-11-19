@@ -33,7 +33,7 @@ def main() -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     t0 = time.time()
     g = gpd.read_file(PRODUCT, layer='genesis', columns=['id', 'genesis', 'area_ha', 'tc2000_mean', 'loss_frac'],
                       where="genesis = 'undefined'")

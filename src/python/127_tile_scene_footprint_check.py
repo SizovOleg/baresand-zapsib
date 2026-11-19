@@ -35,7 +35,7 @@ def main() -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     t = pd.read_csv(IN)
     rows = []
     for k, r in enumerate(t.itertuples()):

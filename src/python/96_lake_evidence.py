@@ -84,7 +84,7 @@ def worker(k: int, n_workers: int, chunk: int, out_dir: Path, limit: int | None)
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     out_dir.mkdir(parents=True, exist_ok=True)
     part, failed = out_dir / f'part_{k}.csv', out_dir / f'failed_{k}.txt'
     mine = select_ids().iloc[k::n_workers]

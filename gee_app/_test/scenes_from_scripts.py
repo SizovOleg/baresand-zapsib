@@ -1,5 +1,5 @@
 # Восстановление исходных сцен тайлов по копиям скрипта 21_<тайл>_.js из репозитория GEE автора
-# (users/ntcomz18_sand/sand_ZapSib, папка rf; итоговые маски «с _ суффиксом», gee_scripts/22_mosaic_export.js).
+# (users/<автор>/sand_ZapSib, папка rf; итоговые маски «с _ суффиксом», gee_scripts/22_mosaic_export.js).
 # Вход: scripts_params.json (параметры, прочитанные из копий в Code Editor 19.11.2026: TILE_KEY, filterDate,
 # calendarRange, порог облачности, NUM_SCENES, USE_SCENES). Выбор повторяется так же, как в копии: коллекция
 # S2_SR_HARMONIZED тайла, фильтры, сортировка по облачности, первые NUM_SCENES, сцены с номерами USE_SCENES (с 1);

@@ -56,7 +56,7 @@ def main() -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     t0 = time.time()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out = OUT_DIR / f'ae_{a.year}.csv'

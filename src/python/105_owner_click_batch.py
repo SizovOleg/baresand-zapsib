@@ -146,7 +146,7 @@ def render_s2(out: Path, s: gpd.GeoDataFrame) -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     (out / 's2').mkdir(parents=True, exist_ok=True)
 
     def one(row) -> str:

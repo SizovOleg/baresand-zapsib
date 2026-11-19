@@ -75,7 +75,7 @@ def worker(k: int, n_workers: int, chunk: int, retry_failed: bool) -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     OUT.mkdir(parents=True, exist_ok=True)
     part = OUT / f'part_{k}.csv'
     failed = OUT / f'failed_{k}.txt'

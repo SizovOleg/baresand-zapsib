@@ -42,7 +42,7 @@ outdated, no). Копии нужно обновить после приняти�
 | рельеф для подложки карт `E:\DEM\AW3D30\AW3D30_v41.tif` | `145_distribution_map.py` (`DEM`) |
 | мозаики Hansen и подложка Sentinel-2 2017-2019 `I:\Hansen`, `I:\Hansen\S2\Middle`, `I:\Hansen\S2\North` | `66_step3_temporal_evidence.py` (`HANSEN`), `67_step3_s2_evidence.py` (`S2_DIRS`) |
 | проект Earth Engine `nodal-thunder-481307-u1` (папки ассетов) | `gee_scripts/00_config.js`, `10_method_threshold.js`, `20_tile_inventory.js`, `21_production_classify.js`, `22_mosaic_export.js`; `python/22_check_mosaic_assets.py`, `22_run_mosaic.py`, `31_download_aux_data.py`, `126_tile_scenes.py`, `127_tile_scene_footprint_check.py`, `150_gee_upload.py` |
-| проект Earth Engine для `ee.Initialize(project='ee-ntcomz18')` | `python/88`, `89`, `90`, `96`, `105`, `108`, `111`, `123`, `126`, `127` |
+| проект Earth Engine для `ee.Initialize(project='ee-author-project')` | `python/88`, `89`, `90`, `96`, `105`, `108`, `111`, `123`, `126`, `127` |
 
 Как запустить на другой машине:
 1. Восстановить структуру проекта: корень с папками `python/` (содержимое `src/python/`), `gee_scripts/`
@@ -53,7 +53,7 @@ outdated, no). Копии нужно обновить после приняти�
 2. Заменить префикс `D:\test\baresand_zapsib` (и пути `E:\`, `I:\`) на свои. Найти все места:
    `grep -rn "D:\\\\test\\\\baresand_zapsib" python` и `grep -rnE "[EI]:\\\\" python`.
 3. Для скриптов с Earth Engine: авторизоваться своей учётной записью (`earthengine authenticate`) и вписать свой проект
-   вместо `nodal-thunder-481307-u1` и `ee-ntcomz18`. Ассеты масок тайлов и мозаики лежат в проекте автора и закрыты.
+   вместо `nodal-thunder-481307-u1` и `ee-author-project`. Ассеты масок тайлов и мозаики лежат в проекте автора и закрыты.
 
 Вынести пути и проект GEE в общий `config.py` (как требует RNA) не сделано: это правка кода, решение автора.
 
@@ -124,8 +124,8 @@ key, token, sig, auth, длинные строки base64.
   `nextPageToken` в `22_check_mosaic_assets.py` (постраничный список ассетов, не секрет).
 - Учётные данные Earth Engine в коде не хранятся: используется локальная авторизация `ee.Initialize()`.
 - Идентификаторы, которые стоит учесть перед публикацией (не секреты): проект GEE `nodal-thunder-481307-u1`
-  (11 файлов, см. раздел 2; он же станет виден в адресе опубликованного App) и проект `ee-ntcomz18` (10 файлов), имя
-  которого повторяет имя учётной записи автора; абсолютные пути дисков `D:`, `E:`, `I:`; упоминание локального
+  (11 файлов, см. раздел 2; он же станет виден в адресе опубликованного App) и второй проект автора (10 файлов): его имя
+  повторяет имя учётной записи, поэтому в копиях оно заменено заглушкой `ee-author-project` (19.11.2026); абсолютные пути дисков `D:`, `E:`, `I:`; упоминание локального
   `.claude/launch.json` в docstring `owner_click_server.py`.
 - Внешние адреса в коде открытые: nspd.gov.ru (публичная кадастровая карта), server.arcgisonline.com и
   services.arcgisonline.com (Esri World Imagery), download.geofabrik.de (OSM); `owner_click_server.py` слушает только

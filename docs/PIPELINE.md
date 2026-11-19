@@ -359,7 +359,7 @@ pypandoc (144), torch, transformers и opencv (116), arcpy (131). Файла req
 
 Пути заданы в коде абсолютно: `D:\test\baresand_zapsib`, `E:\cadastre-local`, `E:\DEM\AW3D30`, `I:\Hansen`; проект GEE
 автора `nodal-thunder-481307-u1` прописан в 00_config.js, 10, 20, 21, 22_mosaic_export.js, 22_check_mosaic_assets.py,
-22_run_mosaic.py, 31, 126, 127, 150, проект `ee-ntcomz18` в `ee.Initialize` скриптов 88, 89, 90, 96, 105, 108, 111, 123,
+22_run_mosaic.py, 31, 126, 127, 150, проект `ee-author-project` в `ee.Initialize` скриптов 88, 89, 90, 96, 105, 108, 111, 123,
 126, 127 (полный перечень по константам: [../src/README.md](../src/README.md), раздел 2). Файла `python/config.py` нет,
 скрипты его не импортируют (вопреки CLAUDE.md и RNA 2): параметры в константах и DEFAULTS скриптов.
 

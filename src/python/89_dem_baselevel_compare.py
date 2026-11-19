@@ -55,7 +55,7 @@ def init_ee() -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     log('GEE инициализирован')
 
 

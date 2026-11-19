@@ -32,7 +32,7 @@ def main() -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     ts = tiles()
     col = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').filterDate('2024-07-01', '2024-09-01')
            .filter(ee.Filter.inList('MGRS_TILE', ts)))

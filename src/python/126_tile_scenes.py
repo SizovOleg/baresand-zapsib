@@ -32,7 +32,7 @@ def main() -> None:
     try:
         ee.Initialize()
     except Exception:
-        ee.Initialize(project='ee-ntcomz18')
+        ee.Initialize(project='ee-author-project')
     import geopandas as gpd
     from shapely.geometry import mapping
     foot = gpd.read_file(ROOT / 'exports' / 'aux' / 'coverage_tiles.gpkg', layer='tiles').set_index('tile')   # из 123_coverage.py
