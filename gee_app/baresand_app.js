@@ -39,6 +39,8 @@ var ASSETS = {
   // техногенные пески по отношению к кадастровым отводам (133, вариант А 13.10.2026, редакция v7b от 03.11.2026:
   // территория населённых пунктов и части единых землепользований считаются отводом, участки крупнее 1000 га нет;
   // превышение отвода; объекты без отвода, включая касающиеся чужого участка)
+  // обобщённая маска отводов под объекты (156): участки ЕГРН ближе 60 м к техногенным пескам, слиты, без атрибутов
+  allotments: PROJECT + '/allotments',
   anthroIn: PROJECT + '/anthro_in',
   anthroExceed: PROJECT + '/anthro_exceed',
   anthroNoallot: PROJECT + '/anthro_noallot',
@@ -798,6 +800,24 @@ addLayer({
   }
 });
 
+addLayer({
+  id: 'allotments', group: 1, sub: 'cad', title: 'Отводы под объекты (обобщённо)', on: false, opacity: 0.8,
+  assets: [ASSETS.allotments],
+  make: function(z) {
+    if (z < Z_ANTHRO || assetState(ASSETS.allotments) !== 'ok') return null;
+    return paintPolys(ee.FeatureCollection(ASSETS.allotments), '9ECAE1', '2171B5', 0.35, 1);
+  },
+  why: 'видно с масштаба ' + Z_ANTHRO,
+  key: function(z) { return (z >= Z_ANTHRO ? 'hi' : 'lo') + '|' + assetState(ASSETS.allotments); },
+  legend: function() {
+    return legendRows([['9ECAE1', 'участки ЕГРН под объекты (промышленные земли, ВРИ под объекты, части единых ' +
+                        'землепользований, земли и территория населённых пунктов) ближе 60 м к техногенным пескам; ' +
+                        'слиты в массивы, без атрибутов, граница упрощена на 10 м']]);
+  },
+  query: function(pt) { return nearestDict(ASSETS.allotments, pt, 0); },
+  render: function(p) { return [['Отвод под объект', p ? 'есть (обобщённо, по сведениям ЕГРН)' : 'нет в точке']]; }
+});
+
 CAD_CLASSES.forEach(function(cc) {
   addLayer({
     id: cc.key, group: 1, sub: 'cad', title: cc.title, on: false, opacity: 0.85,
@@ -1196,7 +1216,7 @@ function genericRows(p, title) {
 // ============================================================================
 
 // Места слоёв на карте создаются сразу в нужном порядке (снизу вверх), поэтому порядок не зависит от порядка включения
-var DRAW_ORDER = ['s2', 'dem', 'hansen', 'gsw', 'density', 'mask', 'genesis', 'contours', 'anthroIn',
+var DRAW_ORDER = ['s2', 'dem', 'hansen', 'gsw', 'density', 'mask', 'genesis', 'contours', 'allotments', 'anthroIn',
                   'anthroExceed', 'anthroNoallot', 'oilfields', 'infra', 'coverage', 'tiles', 'aoi'];
 
 DRAW_ORDER.forEach(function(id) {
@@ -1370,7 +1390,8 @@ var DOWNLOAD_LAYERS = [
   {label: 'Генезис песков', asset: 'genesis', file: 'baresand_genesis_v7'},
   {label: 'Техногенные: в отводах', asset: 'anthroIn', file: 'baresand_anthro_in_v7b'},
   {label: 'Техногенные: превышение отвода', asset: 'anthroExceed', file: 'baresand_anthro_exceed_v7b'},
-  {label: 'Техногенные: без отвода', asset: 'anthroNoallot', file: 'baresand_anthro_noallot_v7b'}
+  {label: 'Техногенные: без отвода', asset: 'anthroNoallot', file: 'baresand_anthro_noallot_v7b'},
+  {label: 'Отводы под объекты (обобщённо)', asset: 'allotments', file: 'baresand_allotments_generalized_v7b'}
 ];
 var DOWNLOAD_FORMATS = ['GeoJSON', 'KML', 'CSV'];
 var dl = {layer: 0, format: 'GeoJSON', seq: 0};

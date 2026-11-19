@@ -11,6 +11,7 @@ trunk/primary), rivers (крупные реки OSM, 146), density_aeolian / den
 cadastre (классы техногена после перестройки 133: путь задаётся --src).
 Дополнено 2026-11-19: districts (районы со статистикой 155), infra_lines (дороги основные, прочие и грунтовые, железные
 дороги, трубопроводы, ЛЭП OSM: поле kind, winter), infra_areas (промышленные площадки и карьеры OSM: поле kind);
+allotments (обобщённая маска отводов под объекты, 156, без атрибутов);
 --density-grid M: растры плотности по центроидам контуров генезиса с ячейкой M метров (EPSG:3576) для эоловых, отмелей
 (всех типов) и техногенных: density_<класс>_<км>km, га/км².
 Ассеты приватные (права меняет автор). Журнал задач: exports/qc/gee_upload/<слой>_tasks.json.
@@ -53,6 +54,10 @@ INFRA = ROOT / 'exports' / 'osm' / 'osm_infra_AOI.gpkg'
 
 def load(layer: str, src: Path | None) -> gpd.GeoDataFrame:
     """Слой для загрузки с короткими именами полей."""
+    if layer == 'allotments':
+        # обобщённая маска отводов под объекты (156): только геометрия и указание источника
+        g = gpd.read_file(ROOT / 'exports' / 'final' / 'allotments_generalized_v7b.gpkg', layer='allotments')
+        return g[['src', 'geometry']]
     if layer == 'districts':
         g = gpd.read_file(ROOT / 'exports' / 'qc' / 'app_stats' / 'districts.gpkg', layer='districts')
         return g[['name', 'label', 'sand_km2', 'aeolian', 'anthropogenic', 'n', 'geometry']]
