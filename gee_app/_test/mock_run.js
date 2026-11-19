@@ -65,7 +65,7 @@ class UiMap extends Widget {
   setOptions() {} setControlVisibility() {} setCenter() {} centerObject() {}
   getBounds() { return [74.1, 63.0, 75.9, 63.6]; }
   add(w) { this.widgetsOn.push(w); }
-  onClick(cb) { this.click = cb; } onChangeZoom(cb) { this.zoomCb = cb; }
+  onClick(cb) { this.click = cb; } onChangeZoom(cb) { this.zoomCb = cb; } onChangeBounds(cb) { this.boundsCb = cb; }
 }
 let theMap = null;
 function PanelF(a, l, s) { return new Panel(a, l, s); }
@@ -78,6 +78,8 @@ const ui = {
   Button: function (o) { return new Widget('Button', o); },
   SplitPanel: function (a, b) { return new Widget('SplitPanel', {a, b}); },
   Map: function () { theMap = new UiMap(); return theMap; },
+  Chart: function (dt, type, opts) { const w = new Widget('Chart', {dt, type, opts}); w.onClick = function (cb) { w.click = cb; }; return w; },
+  util: {debounce: (f) => f},
   root: {clear() {}, add(w) { log.push('root.add ' + w.kind); }}
 };
 ui.Label.prototype = Widget.prototype;
@@ -125,9 +127,9 @@ for (const s of all.filter((w) => w.kind === 'Select')) {
 }
 // конкретный тайл и сцена-кандидат
 const tileSel = all.find((w) => w.kind === 'Select' && w.items().a.some((i) => i.value === 'ALL'));
-tileSel.o.onChange('45WVQ');
-const sceneSel = all.find((w) => w.kind === 'Select' && w.items().a.some((i) => /одна из совпавших/.test(i.label)));
-console.log('сцен у 45WVQ в списке:', sceneSel ? sceneSel.items().a.length : 0);
+tileSel.o.onChange('43VEJ');
+const sceneSel = all.find((w) => w.kind === 'Select' && w.items().a.some((i) => /мозаика сцен тайла|^сцена /.test(i.label)));
+console.log('сцен у 43VEJ в списке:', sceneSel ? sceneSel.items().a.length : 0);
 if (sceneSel) sceneSel.o.onChange(sceneSel.items().a[1].value);
 // слайдеры
 for (const s of all.filter((w) => w.kind === 'Slider')) s.o.onChange(0.3);
@@ -170,7 +172,8 @@ const samples = {
                   {id: 1, area_ha: 2.5, under_ru: 'вне участков', age2000: 'na', newfield: 'x'}],
   oilfields: [{name_ru: 'Ямбургское', type: 'gas', stage_ru: 'разрабатываемое'}, null],
   dem: [15.3, null], gsw: [80, null], hansen: [{treecover2000: 12, lossyear: 5}, {treecover2000: null, lossyear: 0}, null],
-  s2: [['20240705T071621_20240705T071621_T41VPK'], []], tiles: [['41VPK'], []]
+  s2: [['20240705T071621_20240705T071621_T41VPK'], []], tiles: [['41VPK'], []],
+  infra: [{line: {kind: 'pipeline', winter: 0}, area: {kind: 'quarry'}}, {line: {kind: 'road_minor', winter: 1}, area: null}, {line: null, area: null}, null]
 };
 const printCards = {genesis: [185329, 11], anthroIn: [392764], anthroExceed: [462242], anthroNoallot: [28284, 28285], contours: [297258]};
 let cards = 0;
@@ -190,4 +193,8 @@ const st2 = L.filter((l) => l.status && l.status.o.value).map((l) => l.id + ': '
 console.log('статусы:', st2.length ? st2.join(' | ') : 'нет');
 const fv = theMap.layers().a.filter((x) => x.kind === 'FV').map((x) => x.name + (x.shown ? ' (показан)' : ''));
 console.log('FeatureView:', fv.length ? fv.join(', ') : 'нет');
+const charts = all.filter((w) => w.kind === 'Chart');
+for (const c of charts) { if (c.click) c.click(c.o.dt.rows[0].c[0].v); }
+if (theMap.boundsCb) theMap.boundsCb();
+console.log('графиков:', charts.length, '| типы:', [...new Set(charts.map((c) => c.o.type))].join(', '));
 console.log('OK');

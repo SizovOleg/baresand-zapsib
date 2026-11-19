@@ -9,6 +9,10 @@ GCS у проекта нет, поэтому таблица отправляет
 Слои: genesis (итоговый v7: id, g = класс генезиса, a = площадь га, r = step6_rule), fields (месторождения), roads (OSM
 trunk/primary), rivers (крупные реки OSM, 146), density_aeolian / density_anthropogenic (ячейки 10 км, 145: v = га/км²),
 cadastre (классы техногена после перестройки 133: путь задаётся --src).
+Дополнено 2026-11-19: districts (районы со статистикой 155), infra_lines (дороги основные, прочие и грунтовые, железные
+дороги, трубопроводы, ЛЭП OSM: поле kind, winter), infra_areas (промышленные площадки и карьеры OSM: поле kind);
+--density-grid M: растры плотности по центроидам контуров генезиса с ячейкой M метров (EPSG:3576) для эоловых, отмелей
+(всех типов) и техногенных: density_<класс>_<км>km, га/км².
 Ассеты приватные (права меняет автор). Журнал задач: exports/qc/gee_upload/<слой>_tasks.json.
 Запуск: PYTHONIOENCODING=utf-8 python -u python/150_gee_upload.py --layer genesis [--dry-run] | --merge genesis [--cleanup]
 """
@@ -44,8 +48,32 @@ def log(msg: str) -> None:
     print(f'[{time.strftime("%H:%M:%S")}] {msg}', flush=True)
 
 
+INFRA = ROOT / 'exports' / 'osm' / 'osm_infra_AOI.gpkg'
+
+
 def load(layer: str, src: Path | None) -> gpd.GeoDataFrame:
     """Слой для загрузки с короткими именами полей."""
+    if layer == 'districts':
+        g = gpd.read_file(ROOT / 'exports' / 'qc' / 'app_stats' / 'districts.gpkg', layer='districts')
+        return g[['name', 'label', 'sand_km2', 'aeolian', 'anthropogenic', 'n', 'geometry']]
+    if layer == 'infra_lines':
+        r = pyogrio.read_dataframe(INFRA, layer='roads', columns=['cls', 'winter'],
+                                   where="cls IN ('major', 'minor', 'track')")
+        r['kind'] = 'road_' + r['cls']
+        r['winter'] = pd.to_numeric(r['winter'], errors='coerce').fillna(0).astype(int)
+        rl = pyogrio.read_dataframe(INFRA, layer='rail', columns=['railway'],
+                                    where="railway IN ('rail', 'disused', 'abandoned')")
+        rl['kind'] = np.where(rl['railway'] == 'rail', 'rail', 'rail_old')
+        rl['winter'] = 0
+        ln = pyogrio.read_dataframe(INFRA, layer='linear', columns=['kind'], where="kind IN ('pipeline', 'power')")
+        ln['winter'] = 0
+        g = pd.concat([x[['kind', 'winter', 'geometry']].to_crs(4326) for x in (r, rl, ln)], ignore_index=True)
+        return gpd.GeoDataFrame(g, geometry='geometry', crs=4326)
+    if layer == 'infra_areas':
+        g = pyogrio.read_dataframe(INFRA, layer='industrial', columns=['kind'])
+        keep = ['industrial', 'quarry', 'storage_tank', 'construction', 'brownfield', 'works', 'substation', 'gasometer',
+                'helipad']
+        return g[g['kind'].isin(keep)][['kind', 'geometry']]
     if layer == 'genesis':
         g = pyogrio.read_dataframe(ROOT / 'exports' / 'final' / 'baresand_genesis_v7.gpkg', layer='genesis',
                                    columns=['id', 'genesis', 'area_ha', 'step6_rule'])
@@ -242,6 +270,29 @@ def class_raster(scale: float = 50.0) -> None:
     log(f'растр классов {target}: задача {t.id}')
 
 
+def density_grid(cell_m: float) -> None:
+    """Растры плотности (га/км²) по центроидам контуров склеенного genesis: сумма площадей контуров, центроид которых
+    лежит в ячейке, делённая на площадь ячейки (тот же способ, что 145). Сетка EPSG:3576 с шагом cell_m."""
+    src = f'{FOLDER}/genesis'
+    if not exists(src):
+        raise SystemExit(f'нет {src}')
+    region = ee.FeatureCollection(f'projects/{PROJECT}/assets/ZapSib_baresands/baresand_aoi_v2').geometry().bounds(1000)
+    cell_km2 = (cell_m / 1000.0) ** 2
+    km = f'{cell_m / 1000:g}'
+    for cls, codes in (('aeolian', [1]), ('shoal', [2, 3, 4]), ('anthropogenic', [5])):
+        target = f'{FOLDER}/density_{cls}_{km}km'
+        if exists(target):
+            log(f'{target} уже есть')
+            continue
+        pts = ee.FeatureCollection(src).filter(ee.Filter.inList('gcode', codes)).map(
+            lambda f: ee.Feature(f.geometry().centroid(1), {'a': f.get('area_ha')}))
+        img = pts.reduceToImage(['a'], ee.Reducer.sum()).divide(cell_km2).rename('density').toFloat()
+        t = ee.batch.Export.image.toAsset(image=img, description=f'baresand_density_{cls}_{km}km', assetId=target,
+                                          region=region, crs='EPSG:3576', scale=cell_m, maxPixels=1e10)
+        t.start()
+        log(f'плотность {target}: задача {t.id}')
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('--layer')
@@ -251,9 +302,12 @@ def main() -> None:
     ap.add_argument('--cleanup', action='store_true')
     ap.add_argument('--raster')
     ap.add_argument('--class-raster', action='store_true')
+    ap.add_argument('--density-grid', type=float, default=None, help='шаг сетки плотности, м (например 2000)')
     a = ap.parse_args()
     ee.Initialize(project=PROJECT)
-    if a.class_raster:
+    if a.density_grid:
+        density_grid(a.density_grid)
+    elif a.class_raster:
         class_raster()
     elif a.raster:
         raster(a.raster)
