@@ -105,6 +105,23 @@ sands against a generalized mask of land allocations, the source Sentinel-2 scen
 (OpenStreetMap infrastructure, ArcticDEM relief, JRC surface water, Hansen forest cover) and dynamic statistics by
 district. Polygons of the visible area can be downloaded as GeoJSON, KML or CSV.
 
+## Use of artificial intelligence
+
+Multimodal Claude models (Anthropic) were used in the Claude Code environment; drafts of some sections of the article
+were prepared with Gemini models (Google). The models were used to:
+
+- write and debug the processing code: Google Earth Engine and Python scripts, the interactive map;
+- describe satellite images following a written protocol: checking contour attribution while the rules of the genesis
+  cascade were fitted, blind labelling of undefined contours, and describing contours during point corrections;
+- analyse data, prepare and edit the text of the article and the supplementary materials, and check numbers against
+  primary sources.
+
+The accuracy reference sample (S6) and the control samples (S10) were labelled by the expert only, without the models;
+results obtained with the models were checked by the author. Without individual expert review, image descriptions by
+the model determined the class of the 95 largest undefined contours (8.07 km², S5) and changed the class of 1,810
+contours during point corrections (19.9 km², S10). Models, roles, protocols and agreement rates are given in
+[S9](supplement/S09_ai_use.md).
+
 ## Citation
 
 Sizov O.S. BareSand: bare sands of the north of Western Siberia. Supplementary materials to the article "Updated map of
