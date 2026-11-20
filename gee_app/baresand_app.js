@@ -67,12 +67,12 @@ var FEATURE_VIEWS = {
   anthroNoallot: ''
 };
 
-// Ссылки в панели: пустая строка = ссылка не показывается. Вписать DOI статьи после выхода и адрес репозитория, когда
-// он будет открыт (сейчас закрыт: https://github.com/SizovOleg/baresand-zapsib).
+// Ссылки в панели: пустая строка = ссылка не показывается. Репозиторий открыт 19.11.2026; DOI статьи и адрес выкладки
+// полных слоёв вписать, когда появятся.
 var LINKS = {
   article: '',
-  repo: '',
-  methods: '',   // описание методики в репозитории: <repo>/blob/main/docs/INTERPRETATION.md
+  repo: 'https://github.com/SizovOleg/baresand-zapsib',
+  methods: 'https://github.com/SizovOleg/baresand-zapsib/blob/main/docs/INTERPRETATION.md',
   data: ''       // выкладка полных слоёв без упрощения (Zenodo или релиз GitHub)
 };
 
