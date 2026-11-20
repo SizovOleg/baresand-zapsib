@@ -107,14 +107,18 @@ district. Polygons of the visible area can be downloaded as GeoJSON, KML or CSV.
 
 ## Use of artificial intelligence
 
-Multimodal Claude models (Anthropic) were used in the Claude Code environment; drafts of some sections of the article
-were prepared with Gemini models (Google). The models were used to:
+Multimodal Claude models (Anthropic) in the Claude Code environment took part in data processing at the following
+stages:
 
-- write and debug the processing code: Google Earth Engine and Python scripts, the interactive map;
-- describe satellite images following a written protocol: checking contour attribution while the rules of the genesis
-  cascade were fitted, blind labelling of undefined contours, and describing contours during point corrections;
-- analyse data, prepare and edit the text of the article and the supplementary materials, and check numbers against
-  primary sources.
+- processing code and data analysis: writing and debugging Google Earth Engine and Python scripts (classification,
+  vectorisation, the genesis attribution cascade, accuracy assessment, the interactive map);
+- fitting the cascade rules (S3, S4): following a written protocol, the model confirmed or rejected the attribution
+  of reference contours, blind from step 5 onwards (without the map label or quantitative features); each decision was
+  duplicated by a second run of the model, and disputed and control contours were checked by the expert;
+- the largest undefined contours (S5): the model described the image by eight observable features, and a naive Bayes
+  classifier assigned the class from the description;
+- point corrections (S10): the class of a contour was changed when the decisions of two separate runs of the model,
+  which described the image without knowing the map class, agreed.
 
 The accuracy reference sample (S6) and the control samples (S10) were labelled by the expert only, without the models;
 results obtained with the models were checked by the author. Without individual expert review, image descriptions by
