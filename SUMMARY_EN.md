@@ -80,14 +80,16 @@ Aeolian sands cluster north of 68° N (70% of the class; 61.3% in the Yamalsky D
 pattern of the 2022 map; the 41% increase in area reflects differences in methods and does not characterise blowout
 dynamics. Anthropogenic sands concentrate in the taiga and forest-tundra of the Nadym-Pur-Taz and Middle Ob regions
 (85.2%) and within oil and gas fields (68.3%). According to EGRN, 58.7% of their area lies within land allocations;
-objects without an allocation (349.3 km²) are mostly post-2000, whereas parts beyond allocations (243.0 km²) are
-enriched in surfaces already bare in 2000 (38.4% versus 25.3% in the class).
+objects without an allocation (349.3 km²) are mostly post-2000 (72.8%), whereas parts beyond allocations
+(243.0 km²) are enriched in surfaces already bare in 2000 (40.3% versus 25.9% in the class). Relative to land area,
+aeolian sands are most frequent 100-1000 m from water bodies or channels (1.1-1.3 times the uniform expectation)
+and rare beyond 1 km (S13).
 
 ## Repository contents
 
 | Folder or file | Contents |
 |---|---|
-| [supplement/](supplement/README.md) | supplementary sections S1-S12 cited in the article (in Russian) |
+| [supplement/](supplement/README.md) | supplementary sections S1-S13 cited in the article (in Russian) |
 | [docs/INTERPRETATION.md](docs/INTERPRETATION.md) | interpretation method for bare sands and their genesis |
 | [docs/METHODS.md](docs/METHODS.md) | processing algorithms, rules and thresholds |
 | [docs/DATA.md](docs/DATA.md) | final layers, classes, fields and source data |

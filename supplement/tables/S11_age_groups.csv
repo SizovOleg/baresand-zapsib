@@ -1,0 +1,13 @@
+group,age2000,n_contours,area_km2,share_of_group_pct,in_allotments_km2,in_allotments_pct,outside_parcels_km2,outside_parcels_pct
+class,new,51370,1065.922,56.81,642.137,60.24,281.007,26.36
+class,mid,14300,324.724,17.31,191.706,59.04,72.302,22.27
+class,old,17059,485.601,25.88,267.943,55.18,139.576,28.74
+class,total,82729,1876.247,100.0,1101.786,58.72,492.885,26.27
+beyond_allotments,new,5055,92.554,38.08,,,,
+beyond_allotments,mid,2641,52.543,21.62,,,,
+beyond_allotments,old,3785,97.934,40.3,,,,
+beyond_allotments,total,11481,243.031,100.0,,,,
+no_allotment,new,12466,254.324,72.81,,,,
+no_allotment,mid,2765,36.655,10.49,,,,
+no_allotment,old,3344,58.333,16.7,,,,
+no_allotment,total,18575,349.312,100.0,,,,
