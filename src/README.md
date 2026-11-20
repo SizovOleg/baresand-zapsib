@@ -1,135 +1,71 @@
-# src: скрипты BareSand
+# Код обработки
 
-Копии (не перенос) скриптов проекта на 13.10.2026: 99 из `python/` и 16 из `gee_scripts/` (вместе с
-`gee_scripts/utils/accuracy.js`), отобранные по `../docs/scripts_manifest.csv` (`include_in_repo = yes`). Имена файлов и
-вложенность папок сохранены, при копировании копии побайтно совпадали с исходниками (проверено `cmp`). После
-копирования рабочие версии четырёх скриптов изменены (133, 140, 150, 151: кадастровая редакция варианта А и загрузка
-ассетов приложения), а 152 и 153 появились позже; состояние каждой копии записано в поле `repo_copy` манифеста (yes,
-outdated, no). Копии нужно обновить после принятия варианта А. Что делает каждый скрипт, написано в его docstring
-(Python) или заголовке (JavaScript) и в манифесте (поля stage, role, inputs, outputs, level).
+Скрипты, которыми построены маска оголённых песков, атрибуция генезиса, оценка точности, сопоставление с земельными
+отводами, итоговые слои и интерактивная карта. Алгоритмы, правила и пороги описаны в
+[../docs/METHODS.md](../docs/METHODS.md); там же (раздел 1) приведена схема обработки по этапам.
 
-Связанные документы: `../docs/PIPELINE.md` (стадии, уровни воспроизведения, зависимости, внешние данные),
-`../docs/METHODS.md` (алгоритмы, правила и пороги), `../docs/DATA.md` (слои и поля), `../gee_app/README.md`
-(мини-приложение Earth Engine).
+## Состав
 
-## 1. Что сюда не вошло
+- `gee_scripts/`: скрипты Google Earth Engine (JavaScript, Code Editor): выбор метода на калибровочных сценах,
+  классификация тайлов, сшивка маски.
+- `python/`: скрипты Python: векторизация, вспомогательные растры, каскад атрибуции генезиса, экспертная разметка и
+  перенос меток, оценка точности, точечные правки, сопоставление с земельными отводами, статистика, карты, загрузка
+  слоёв интерактивной карты.
+- `requirements.txt`: пакеты Python с версиями, на которых проверены скрипты (Python 3.12).
 
-- 23 строки манифеста с `include_in_repo = no`: первое поколение атрибуции (`gee_scripts/30*.js`, `python/32`, `33`),
-  заменённые варианты (42, 44, 100, 122, 124), признаки снимков DINOv2 (116, 117), черновик v8 (147-149), служебные
-  инструменты среды и оформление статьи (131, 144, `job_monitor_server.py`, `qc_thumb.py`), резервные копии и сценарий
-  читателей вне папок скриптов. Политика `include_in_repo` предложена при инвентаризации и ждёт подтверждения автора.
-- 2 скрипта с `include_in_repo = yes`, лежащие вне `python/` и `gee_scripts/`: `exports/qc/jev/jev_baseline.py` и
-  `exports/qc/jev/baseline_verify.py` (исследование, отвергнутая идея Jev; `repo_copy = no`). Задание на копирование
-  ограничено двумя папками скриптов; добавлять их стоит, только если автор подтвердит их роль (обоснование конфигурации
-  модели 102), иначе поставить `include_in_repo = no`.
-- 2 новых скрипта от 13.10.2026 с `include_in_repo = yes`, ещё не скопированные: `152_outside_review.py` (просмотр
-  внешних кадастровых слоёв на снимках) и `153_check_cadastre_a.py` (проверка варианта А).
-- Данные, ключи, учётные записи, журналы, временные файлы: не копировались. Входы и выходы скриптов (маска, векторы,
-  таблицы решений, метки) описаны в `../docs/DATA.md` и `../docs/PIPELINE.md` (раздел 4) и выкладываются отдельно
-  (`../docs/release_files.csv`).
+## Запуск
 
-## 2. Пути абсолютные, общего config нет
+Скрипты Python запускаются из корня проекта, в котором лежат папки `python/` (содержимое `src/python/`),
+`gee_scripts/` и `exports/` (данные): `python -u python/<скрипт>.py [ключи]`. Пути к данным и проект Google Earth
+Engine заданы константами в начале скриптов (`ROOT`, `EXPORTS`, `ee.Initialize(project=...)`) и значениями по умолчанию
+ключей командной строки; для запуска в другом окружении их нужно заменить. Входы, выходы и ключи каждого скрипта описаны
+в его docstring. Скрипты с длительными расчётами ограничивают число потоков через `cpu_limit.py`.
 
-Скрипты писались для одной машины автора, и пути в них абсолютные. Единого файла параметров нет: `python/config.py`
-в проекте не существует (его требуют `CLAUDE.md` и RNA, раздел 2), а `gee_scripts/00_config.js` не исполняется
-(`yamalGeom` используется в строке 89, но не определён; `../docs/PIPELINE.md`, раздел 9). Пути и параметры заданы
-константами в начале каждого скрипта и значениями по умолчанию его ключей командной строки.
+Скрипты Google Earth Engine выполняются в Code Editor. `21_production_classify.js` является шаблоном классификации
+тайла: для каждого тайла создавалась копия с обучающими точками в Geometry Imports и параметрами отбора сцен
+([../supplement/S07_scenes.md](../supplement/S07_scenes.md)).
 
-| Что | Где задано |
-|---|---|
-| корень проекта `D:\test\baresand_zapsib` | 96 из 99 Python-скриптов (все, кроме `22_check_mosaic_assets.py`, `22_run_mosaic.py`, `cpu_limit.py`): константа `ROOT` в 52 скриптах, `EXPORTS` в 47 (часть задаёт обе), в остальных свои (`QC`, `OSM_DIR`, `DRIVER`, `THUMB` и др.) |
-| локальная копия ЕГРН `E:\cadastre-local\data\layers\parcels_89.gpkg`, `parcels_86.gpkg`, `parcels_24.gpkg` | `133_cadastre_anthro.py` (`PARCELS`, `PARCELS_KRAS`) |
-| рельеф для подложки карт `E:\DEM\AW3D30\AW3D30_v41.tif` | `145_distribution_map.py` (`DEM`) |
-| мозаики Hansen и подложка Sentinel-2 2017-2019 `I:\Hansen`, `I:\Hansen\S2\Middle`, `I:\Hansen\S2\North` | `66_step3_temporal_evidence.py` (`HANSEN`), `67_step3_s2_evidence.py` (`S2_DIRS`) |
-| проект Earth Engine `nodal-thunder-481307-u1` (папки ассетов) | `gee_scripts/00_config.js`, `10_method_threshold.js`, `20_tile_inventory.js`, `21_production_classify.js`, `22_mosaic_export.js`; `python/22_check_mosaic_assets.py`, `22_run_mosaic.py`, `31_download_aux_data.py`, `126_tile_scenes.py`, `127_tile_scene_footprint_check.py`, `150_gee_upload.py` |
-| проект Earth Engine для `ee.Initialize(project='ee-author-project')` | `python/88`, `89`, `90`, `96`, `105`, `108`, `111`, `123`, `126`, `127` |
+## Указатель скриптов
 
-Как запустить на другой машине:
-1. Восстановить структуру проекта: корень с папками `python/` (содержимое `src/python/`), `gee_scripts/`
-   (содержимое `src/gee_scripts/`), `exports/`, `vector/`, `oilfields/` с данными из выкладки. Скрипты ищут друг друга по
-   пути `ROOT / 'python' / ...` (114, 115 загружают 113; 136, 141 загружают 105; 137 загружает 134; 99 загружает 97 и 98)
-   и импортируют `cpu_limit.py`, `qc_thumb_xyz.py` из своей папки, поэтому раскладка `src/python/` без переименования
-   папки не заработает.
-2. Заменить префикс `D:\test\baresand_zapsib` (и пути `E:\`, `I:\`) на свои. Найти все места:
-   `grep -rn "D:\\\\test\\\\baresand_zapsib" python` и `grep -rnE "[EI]:\\\\" python`.
-3. Для скриптов с Earth Engine: авторизоваться своей учётной записью (`earthengine authenticate`) и вписать свой проект
-   вместо `nodal-thunder-481307-u1` и `ee-author-project`. Ассеты масок тайлов и мозаики лежат в проекте автора и закрыты.
-
-Вынести пути и проект GEE в общий `config.py` (как требует RNA) не сделано: это правка кода, решение автора.
-
-## 3. Окружение
-
-Python 3.10 или новее (в коде есть аннотации вида `Path | None`); проект выполнялся на Python 3.12. Пакеты по импортам
-(`../docs/PIPELINE.md`, раздел 5): pandas, geopandas, numpy, shapely, pyogrio, rasterio, pyproj, scipy, scikit-learn,
-threadpoolctl, matplotlib, Pillow, earthengine-api, requests, urllib3, tqdm, rasterstats. Файла `requirements.txt` или
-другого файла окружения с закреплёнными версиями (библиотеки Python, GEOS, GDAL) в проекте нет; это ограничение
-воспроизводимости: от версии GEOS зависит, например, порядок id при векторизации (`../README.md`, раздел «Статус и
-ограничения воспроизводимости»). Запуск из корня проекта: `PYTHONIOENCODING=utf-8 python -u python/<скрипт>.py`.
-Тяжёлые скрипты понижают приоритет и ограничивают потоки через `cpu_limit.py`.
-
-GEE-скрипты (`gee_scripts/*.js`) выполняются в Code Editor Earth Engine. `21_production_classify.js` это шаблон: для
-каждого из 128 тайлов автор делал копию `21_<тайл>` и расставлял обучающие точки в Geometry Imports; копии с точками
-хранятся только в аккаунте GEE автора.
-
-## 4. Порядок запуска
-
-Единственный полный порядок запуска с аргументами, выходами и замороженными входами: `../docs/PIPELINE.md`, раздел 4
-(чтобы не было двух расходящихся копий). Уровень каждого скрипта: поле `level` манифеста. Здесь только схема.
-
-### Уровень A: итоговые слои из первичного вектора, внешних данных и замороженных таблиц решений
-
-Вход: опубликованный первичный вектор `exports/baresand_contours_v2.gpkg` (повторная векторизация `30_vectorize_local.py`
-тех же id не гарантирует и остаётся отдельной проверкой). Сбор данных: 31, 69. Шаг 1: 32a, 32b, 44b, 45. Шаг 2: 50, 50b,
-51, 55. Шаг 3: 60, 61, 61b, 66, 67, 70, 62, 68. Шаг 4: 80, 81, 83. Шаг 5: 90, 93, 94, 95. Шаг 6: 104. Затем 132 (v5),
-133 (v6), 138 (классы v7), 133 (итоговые GeoPackage v7), 139, 140 (сборка 06.10.2026). Вариант А кадастра
-(13.10.2026): 151 -> 133 `--territory` -> проверка 153; прогон записан в `exports/qc/cadastre_v7a/`, в `exports/final`
-не перенесён. 139 и копия 140 здесь ждут слои сборки 06.10.2026; копии 133, 140, 150, 151 устарели, 152 и 153 не
-скопированы (`repo_copy`).
-
-Ограничения: пакета замороженных входов с хешами и файла окружения нет; участки ЕГРН не публикуются (133 и 151 вне
-машины автора не повторить, а 69 скачает с НСПД выгрузку на другую дату); выгрузки OSM и ЕГРН привязаны к датам
-(`../README.md`, раздел «Статус и ограничения воспроизводимости»). 132 и 133 не перезаписывают существующие выходы без `--force`.
-
-### Уровень B: пересчёт таблиц решений из меток
-
-50c, 54, 65, 82, 101, 102, 103, 105, 107, 108, 109, 110, 111, 112, 113 (модуль), 114, 125, 134, 135, 136, 137. Нужны
-исходные метки эксперта и автора и ответы агентов; повторный запуск агентов даст другие тексты (`../docs/PIPELINE.md`,
-раздел 4, уровень B).
-
-### Уровень C: от исходных сцен
-
-`gee_scripts/20_tile_inventory.js` -> `21_production_classify.js` (128 копий с точками автора) ->
-`python/22_check_mosaic_assets.py` -> `22_run_mosaic.py` (или `gee_scripts/22_mosaic_export.js`). Без обучающих точек
-автора маску повторить нельзя.
-
-### Прочее
-
-- Проверки и QC (выборки, страницы проверки, сводки вердиктов): роль «проверка и QC» в манифесте.
-- Оценка точности: `118_validation_v4_pop.py` -> `105_owner_click_batch.py` -> `107_owner_click_ingest.py` ->
-  `119_validation_v4.py --batches V1,V1b,V1c --split-ha 100` (входы, в том числе совокупность и таблицы домена E:
-  `../docs/PIPELINE.md`, раздел 3.6).
-- Статистика и карты статьи: 120 -> 121, 130; 128, 129, 145 (+ 146).
-- Мини-приложение: ассеты загружены `150_gee_upload.py` в `projects/nodal-thunder-481307-u1/assets/ZapSib_baresands/app`
-  (13.10.2026, копия здесь устарела); `../gee_app/prepare_assets.py` остаётся альтернативным путём (файлы для ручной
-  загрузки) и для текущих ассетов не использовался (`../gee_app/README.md`, разделы 3-4).
-
-## 5. Проверка копий на секреты (13.10.2026)
-
-Проверены все 115 копий: ключевые слова (password, secret, token, api key, bearer, authorization, private key,
-credentials, service account, cookie), шаблоны ключей и токенов (Google `AIza...`, OAuth `ya29.`, GitHub `ghp_`,
-`github_pat_`, `sk-...`, Slack `xox.-`, AWS `AKIA...`, JWT, блоки `BEGIN ... KEY`), адреса почты, URL с параметрами
-key, token, sig, auth, длинные строки base64.
-
-- Токенов, паролей, ключей API, закрытых ключей и адресов почты не найдено. Единственное совпадение по слову token:
-  `nextPageToken` в `22_check_mosaic_assets.py` (постраничный список ассетов, не секрет).
-- Учётные данные Earth Engine в коде не хранятся: используется локальная авторизация `ee.Initialize()`.
-- Идентификаторы, которые стоит учесть перед публикацией (не секреты): проект GEE `nodal-thunder-481307-u1`
-  (11 файлов, см. раздел 2; он же станет виден в адресе опубликованного App) и второй проект автора (10 файлов): его имя
-  повторяет имя учётной записи, поэтому в копиях оно заменено заглушкой `ee-author-project` (19.11.2026); абсолютные пути дисков `D:`, `E:`, `I:`; упоминание локального
-  `.claude/launch.json` в docstring `owner_click_server.py`.
-- Внешние адреса в коде открытые: nspd.gov.ru (публичная кадастровая карта), server.arcgisonline.com и
-  services.arcgisonline.com (Esri World Imagery), download.geofabrik.de (OSM); `owner_click_server.py` слушает только
-  127.0.0.1.
-- `69_step3_nspd_download.py` отключает проверку сертификата (`urllib3.disable_warnings()`, verify=False; в docstring:
-  сертификат НСПД выдан российским корневым центром Минцифры). Это не утечка, но при публикации стоит оговорить или
-  заменить на свой CA-bundle.
+| Этап | Скрипты | Назначение |
+|---|---|---|
+| выбор метода | gee_scripts/00_config.js, 01_explore_scenes.js, 02_cloud_mask.js, 03_spectral_indices.js | параметры, обзор сцен, облачная маска, спектральные индексы |
+| | gee_scripts/10_method_threshold.js - 16_diff_rf_vs_combined.js | сравнение методов на эталонной сцене ([S2](../supplement/S02_method_comparison.md)) |
+| | gee_scripts/17_validation.js, utils/accuracy.js | проверка классификатора на калибровочных сценах ([S1](../supplement/S01_classifier_check.md)) |
+| маска песка | gee_scripts/20_tile_inventory.js, 21_production_classify.js | инвентаризация тайлов, классификация тайла |
+| | gee_scripts/22_mosaic_export.js; python/22_check_mosaic_assets.py, 22_run_mosaic.py | сшивка масок тайлов |
+| | python/123_coverage.py | покрытие маски |
+| векторизация и вспомогательные данные | python/30_vectorize_local.py | контуры маски, минимальная единица 900 м² |
+| | python/31_download_aux_data.py | растры GSW, MERIT Hydro, Landsat 1984-1995 гг. |
+| шаг 1: морские отмели | python/32a_step1_littoral.py, 44b_sea_distance_osm.py | высота над водотоком, расстояние до моря |
+| | python/32b_step1_shoal.py, 45_step1_shoal_v2.py | правило шага 1 |
+| | python/41_qc_step1_package.py, 43_qc_step1_evidence_local.py, 46_qc_step1_sample.py, 47_qc_step1_synthesize.py | эталон и проверка шага 1 |
+| шаг 2: речные и озёрные отмели | python/50_step2_water_evidence.py, 50b_step2_channel_evidence.py, 50c_step2_giant_nearwater.py | признаки воды, русел и затопляемости |
+| | python/51_step2_rule.py, 55_step2_split_mixed.py | правило шага 2, разрез смешанных контуров |
+| | python/52_step2_sample.py, 53_step2_synthesize.py, 54_step2_expert_verdicts.py, 56_step2_split_qc_sample.py | эталон и проверка шага 2 |
+| шаг 3: техногенные пески | python/60_step3_osm_extract.py, 61_step3_infra_evidence.py, 61b_step3_osm_built.py | признаки инфраструктуры OSM и формы |
+| | python/66_step3_temporal_evidence.py, 67_step3_s2_evidence.py | история поверхности (GFC 2000 г., Sentinel-2 2017-2019 гг.) |
+| | python/69_step3_nspd_download.py, 70_step3_nspd_evidence.py | признаки участков и сооружений ЕГРН |
+| | python/62_step3_rule.py, 68_step3_apply_expert.py | правило шага 3, экспертные правки |
+| | python/63_step3_sample.py, 64_step3_synthesize.py, 65_step3_expert_verdicts.py, 71_step3_nspd_small_qc.py | эталон и проверка шага 3 |
+| шаг 4: эоловые и неопределённые | python/80_step4_evidence.py, 81_step4_rule.py, 83_step4_apply_expert.py | признаки, правило шага 4, экспертные правки |
+| | python/82_step4_qc.py, 84_cascade_order_check.py, 87_undef_review_package.py | проверка шага 4, техногенный след у отмелей, просмотр неопределённых |
+| шаг 5: рельеф | python/88_dem_pilot.py, 89_dem_baselevel_compare.py, 90_dem_evidence_mass.py | превышения над локальным базисом по ArcticDEM |
+| | python/91_target_sample.py, 92_target_verdicts.py, 93_apply_dem_rules.py, 94_step5_apply_expert.py | целевая выборка, пороги, правила шага 5 |
+| | python/95_flag_not_sand.py | флаг not_sand_suspect |
+| отложенная выборка каскада | python/85_final_validation_sample.py, 86_final_accuracy.py | проверка шагов 1-5 |
+| шаг 6: неопределённый остаток | python/96_lake_evidence.py - 99_lake_audit_sample.py | признаки и выборки для озёрных отмелей |
+| | python/101_big_undefined_sample.py - 104_apply_big_pilot.py | крупнейшие неопределённые контуры: описание снимков и классификатор |
+| | python/108_burn_signature_modis.py, 109_disputed_analysis.py, 110_disputed_class.py | вырубки без пожара, контуры без надёжного решения |
+| | python/111_alphaearth_features.py - 115_small_eval.py | эмбеддинги AlphaEarth, перенос меток и его проверка |
+| окно проверки и утилиты | python/105_owner_click_batch.py, 107_owner_click_ingest.py, owner_click_server.py | окно экспертной разметки, приём меток |
+| | python/qc_thumb_xyz.py, qc_render_parallel.py, cpu_limit.py | снимки Esri World Imagery для разметки, ограничение нагрузки |
+| оценка точности | python/118_validation_v4_pop.py, 119_validation_v4.py | совокупность, оценки по площади ([S6](../supplement/S06_accuracy.md)) |
+| точечные правки и итоговый слой | python/125_mixed_for_split.py, 132_apply_mixed_split.py | пересмотр смешанных контуров (v5) |
+| | python/134_aeolian_techno_candidates.py, 135_merge_readers.py, 136_owner_techno_batch.py, 137_small_techno_candidates.py, 138_build_final.py | эоловые контуры вблизи инфраструктуры (v7) |
+| | python/141_control_batch.py, 142_control_estimates.py, 143_control_review.py | контрольная выборка T3 ([S10](../supplement/S10_point_corrections.md)) |
+| | python/139_check_final.py, 140_assemble_final.py | проверка и сборка итоговых слоёв |
+| земельные отводы | python/151_territory.py, 133_cadastre_anthro.py, 153_check_cadastre_a.py, 154_allot_review.py | территория населённых пунктов, группы техногенных песков, проверки ([S11](../supplement/S11_cadastre.md)) |
+| статистика, карты и рисунки | python/120_admin_districts.py, 121_article_stats.py, 130_article_district_table.py | районы, сводные показатели, таблица по районам |
+| | python/128_article_map.py, 129_article_examples.py, 145_distribution_map.py, 146_osm_rivers.py | карты и рисунки статьи |
+| интерактивная карта | python/150_gee_upload.py, 155_app_stats.py, 156_allotment_mask.py | загрузка слоёв в Earth Engine, статистика панели, обобщённая маска отводов ([../gee_app/](../gee_app/README.md)) |

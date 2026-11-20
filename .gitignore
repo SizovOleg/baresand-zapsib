@@ -1,5 +1,4 @@
-# BareSand: в git только код и документы. Данные выкладываются отдельно (docs/release_files.csv, docs/DATA.md),
-# файлы больше 100 МБ GitHub в репозиторий не примет.
+# BareSand: в репозитории код и документы; пространственные данные хранятся отдельно (docs/DATA.md).
 
 # Python
 __pycache__/
@@ -11,7 +10,7 @@ env/
 .env
 .env.*
 
-# Node (прогон gee_app/_test/mock_run.js)
+# Node (прогон gee_app/test/mock_run.js)
 node_modules/
 
 # Учётные данные и ключи: никогда не коммитить
@@ -42,7 +41,7 @@ desktop.ini
 *.aux.xml
 *.ovr
 
-# Пространственные данные и архивы (лежат в выкладке на облаке)
+# Пространственные данные и архивы
 *.gpkg
 *.gpkg-wal
 *.gpkg-shm

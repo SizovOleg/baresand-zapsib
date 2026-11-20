@@ -1,6 +1,6 @@
 // Прогон baresand_app.js в Node с заглушками ee/ui: ловит ошибки выполнения в логике панели, переключателях,
 // смене масштаба, щелчке по карте и карточках атрибутов. Серверные вызовы ee не выполняются (цепочки-заглушки).
-// Запуск: node repo/gee_app/_test/mock_run.js
+// Запуск из корня репозитория: node gee_app/test/mock_run.js
 'use strict';
 const fs = require('fs');
 const path = require('path');

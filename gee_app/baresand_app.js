@@ -1,12 +1,11 @@
 /*
  * BareSand: оголённые пески севера Западной Сибири.
- * Мини-приложение Google Earth Engine (Code Editor, ui API, JavaScript ES5). Версия 2026-11-19.
+ * Интерактивная карта Google Earth Engine (Code Editor, ui API, JavaScript ES5).
+ * Материалы и описание: https://github.com/SizovOleg/baresand-zapsib (gee_app/README.md).
  *
- * Данные: итоговые слои v7 (exports/final/README.md), кадастровые группы техногенных песков v7b (03.11.2026,
- * exports/qc/cadastre_v7b/cadastre_anthro.md), первичная маска и первичный вектор (22_mosaic_export.js,
- * python/30_vectorize_local.py), сцены Sentinel-2 по тайлам (exports/aux/tile_scenes.csv, python/126_tile_scenes.py).
- * Статья: docs/article_v2/draft_v2_final.md, приложение: docs/article_v2/supplement_v2_final.md.
- * Подготовка файлов к загрузке: repo/gee_app/prepare_assets.py. Загрузка ассетов и публикация App: repo/gee_app/README.md.
+ * Данные: итоговый слой генезиса и группы техногенных песков (docs/DATA.md), маска песка и первичный вектор
+ * (src/gee_scripts/22_mosaic_export.js, src/python/30_vectorize_local.py), сцены Sentinel-2 по тайлам (supplement/S07).
+ * Загрузка ассетов: src/python/150_gee_upload.py.
  *
  * Что настроить перед запуском: раздел 1 (PROJECT, ASSETS, LINKS). Остальные разделы менять не нужно.
  * Пока путь ассета содержит '<PROJECT>', слой помечается «ассет не задан» и не загружается.
@@ -16,10 +15,8 @@
 // 1. НАСТРОЙКИ: ПУТИ К АССЕТАМ И ССЫЛКИ (заглушки)
 // ============================================================================
 
-// Папка ассетов. Пример по проекту автора (gee_scripts/00_config.js):
-// 'projects/nodal-thunder-481307-u1/assets/baresand'
-// Ассеты загружены python/150_gee_upload.py (13.10.2026): таблицы частями <слой>_pNNN, крупные склеены в один ассет;
-// геометрия упрощена на 10 м (пиксель маски), точные слои в облаке автора.
+// Папка ассетов. Ассеты загружены src/python/150_gee_upload.py: таблицы частями <слой>_pNNN, крупные склеены в один
+// ассет; геометрия упрощена на 10 м (пиксель маски).
 var ROOT_ASSETS = 'projects/nodal-thunder-481307-u1/assets/ZapSib_baresands';
 var PROJECT = ROOT_ASSETS + '/app';
 
@@ -30,7 +27,7 @@ var ASSETS = {
   tiles: PROJECT + '/tiles_p000',
   // первичная маска: растр 10 м по району работ (gee_scripts/22_mosaic_export.js), канал sand_mask
   maskRaster: ROOT_ASSETS + '/baresand_mask_AOI_v2',
-  // первичный вектор (python/30_vectorize_local.py: exports/baresand_contours_v2.gpkg)
+  // первичный вектор (src/python/30_vectorize_local.py)
   contours: PROJECT + '/contours',
   // итоговый слой генезиса v7 (поля id, genesis, area_ha, step6_rule, gcode) и обзорный растр классов gcode 50 м
   // (из таблицы на стороне EE, 150 --class-raster): на мелких масштабах контуры меньше ячейки не видны
@@ -52,7 +49,7 @@ var ASSETS = {
   infraLines: PROJECT + '/infra_lines',
   infraAreas: PROJECT + '/infra_areas',
   // дополнительные слои
-  // месторождения: в публичном приложении не показываются, пока не выяснена лицензия слоя (ревизия Astra A11)
+  // месторождения: в приложении не показываются
   oilfields: ''
 };
 
@@ -79,10 +76,9 @@ var LINKS = {
 // Наборы каталога GEE (проверены 13.10.2026 через ee.data.getAsset)
 var CATALOG = {
   s2: 'COPERNICUS/S2_SR_HARMONIZED',
-  dem: 'UMN/PGC/ArcticDEM/V4/2m_mosaic',                 // как в python/88-96 (V4, не V3)
-  gsw: 'JRC/GSW1_4/GlobalSurfaceWater',                  // как в python/31, 42, 88-96
-  hansen: 'UMD/hansen/global_forest_change_2019_v1_7'   // версия метода (python/66: GFC-2019-v1.7); в каталоге
-                                                         // помечена устаревшей, замена: ..._2025_v1_13
+  dem: 'UMN/PGC/ArcticDEM/V4/2m_mosaic',                 // как в src/python/88-96
+  gsw: 'JRC/GSW1_4/GlobalSurfaceWater',                  // как в src/python/31, 88-96
+  hansen: 'UMD/hansen/global_forest_change_2019_v1_7'   // версия, использованная в обработке (src/python/66)
 };
 
 // Масштабы (уровни масштаба карты), с которых рисуются тяжёлые слои
@@ -96,8 +92,7 @@ var Z_TILES = 5;     // следы тайлов
 // 2. СПРАВОЧНИКИ
 // ============================================================================
 
-// Классы генезиса (поле gcode готовит prepare_assets.py). Цвета: стили проекта (python/131_arcgis_lyr.py,
-// exports/*.qml), площади: exports/final/README.md и приложение S8 (отмели по типу).
+// Классы генезиса. Площади: supplement/S08 (отмели по типу).
 var CLASSES = [
   {code: 1, key: 'aeolian', label: 'эоловые', fill: 'FF9F1A', line: 'C86E00', km2: '2 729,7'},
   {code: 2, key: 'river_shoal', label: 'отмели речные', fill: '0078FF', line: '003CA0', km2: '3 053,7'},
@@ -188,8 +183,7 @@ var AGE_RU = {
   na: 'нет данных Hansen'
 };
 
-// Кадастровые классы техногенных песков (решение автора 13.10.2026, редакция v7b 03.11.2026; числа:
-// exports/qc/cadastre_v7b/cadastre_anthro.md)
+// Группы техногенных песков по отношению к земельным отводам (supplement/S11, docs/METHODS.md, раздел 9)
 var CAD_CLASSES = [
   {key: 'anthroIn', fv: 'anthroIn', title: 'В отводах', fill: '2B8CBE', line: '1B5E87',
    note: 'внутри отводов под объекты, включая территорию населённых пунктов и полосы дорог и трубопроводов: ' +
@@ -215,8 +209,8 @@ var GRP_RU = {
 };
 var KIND_RU = {none: 'отвода ближе 10 м нет', touch: 'касается чужого отвода (в отводе меньше 10 % контура)'};
 
-// Растры плотности: «суммарная площадь, га/км²», способ центроидов (python/145_distribution_map.py, шкалы SCALES:
-// share для ячейки 10 км, 2022 для ячеек 250 м и 1 км; цвета рис. 1 статьи 2022 г.)
+// Растры плотности: «суммарная площадь, га/км²», способ центроидов (docs/METHODS.md, раздел 10; шкалы: share для
+// ячейки 10 км, шкала карты 2022 г. для мелких ячеек)
 var DENSITY_SCALES = {
   share: {bounds: [0.1, 0.5, 1, 2.5, 5, 10],
           labels: ['до 0,1', '0,11-0,5', '0,51-1', '1,1-2,5', '2,6-5', '5,1-10', 'более 10'],
@@ -265,10 +259,8 @@ var S2_VIS = {
   nat: {label: 'Натуральные цвета (B4, B3, B2)', vis: {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}},
   swir: {label: 'SWIR (B12, B11, B4)', vis: {bands: ['B12', 'B11', 'B4'], min: 0, max: 4000}}
 };
-// Сцены тайлов восстановлены 19.11.2026 по копиям 21_<тайл>_.js из репозитория GEE автора (users/.../sand_ZapSib,
-// папка rf): выбор повторён по параметрам копии (даты, месяцы, порог облачности, сортировка, NUM_SCENES, номера
-// USE_SCENES); при нескольких номерах классифицировалась мозаика сцен (_test/scenes_from_scripts.py). Проверка по
-// векторам: вне следов данных этих сцен 36 из 575 054 контуров (0,24 км²).
+// Сцены тайлов: параметры отбора и номера выбранных сцен по скриптам классификации тайлов (supplement/S07); при
+// нескольких номерах классифицировалась мозаика сцен.
 var SCENE_STATUS_RU = {
   script: 'сцены по копии скрипта тайла автора',
   cover: 'копии с выбором сцен нет; сцены подобраны по копии 21_43VEJ.js и покрытию контуров итогового слоя'
@@ -299,7 +291,7 @@ var HANSEN_MODES = {
   tree: 'древесный покров в 2000 г., %'
 };
 
-// Сцены Sentinel-2 по тайлам (_test/scenes_to_app.py из _test/scenes_from_scripts_final.csv): v = статус
+// Сцены Sentinel-2 по тайлам (supplement/tables/S07_scenes.csv): v = статус
 // (SCENE_STATUS_RU), u = номера USE_SCENES в копии скрипта, c = сцены тайла (при нескольких классифицировалась их
 // мозаика).
 var SCENES = [
