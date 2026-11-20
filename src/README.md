@@ -66,6 +66,8 @@ Engine заданы константами в начале скриптов (`RO
 | | python/141_control_batch.py, 142_control_estimates.py, 143_control_review.py | контрольная выборка T3 ([S10](../supplement/S10_point_corrections.md)) |
 | | python/139_check_final.py, 140_assemble_final.py | проверка и сборка итоговых слоёв |
 | земельные отводы | python/151_territory.py, 133_cadastre_anthro.py, 153_check_cadastre_a.py, 154_allot_review.py | территория населённых пунктов, группы техногенных песков, проверки ([S11](../supplement/S11_cadastre.md)) |
+| | python/157_allot_by_district.py, 159_age_north70.py | отводы по районам (табл. S11.7); возраст поверхности контуров без данных в слое по Global Forest Change в Earth Engine |
 | статистика, карты и рисунки | python/120_admin_districts.py, 121_article_stats.py, 130_article_district_table.py | районы, сводные показатели, таблица по районам |
+| | python/article_facts.py, 158_buffer_background.py | показатели по ареалам, районам и месторождениям; доля суши и эоловых песков по расстоянию до воды и русел ([S13](../supplement/S13_hydro_proximity.md)) |
 | | python/128_article_map.py, 129_article_examples.py, 145_distribution_map.py, 146_osm_rivers.py | карты и рисунки статьи |
 | интерактивная карта | python/150_gee_upload.py, 155_app_stats.py, 156_allotment_mask.py | загрузка слоёв в Earth Engine, статистика панели, обобщённая маска отводов ([../gee_app/](../gee_app/README.md)) |
