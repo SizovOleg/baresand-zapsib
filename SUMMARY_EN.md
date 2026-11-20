@@ -77,10 +77,11 @@ aeolian covers of low terraces and shoals, which are separated by the height abo
 for aeolian sands and 0.5 m for shoals; area under the ROC curve 0.94).
 
 Aeolian sands cluster north of 68° N (70% of the class; 61.3% in the Yamalsky District) and reproduce the district
-pattern of the 2022 map despite a 41% methodological increase in area. Anthropogenic sands concentrate in the northern
-taiga of the Nadym-Pur-Taz and Middle Ob regions (85.2%) and within oil and gas fields (68.3%). According to EGRN,
-58.7% of their area lies within land allocations; objects without an allocation (349.3 km²) are mostly post-2000,
-whereas parts beyond allocations (243.0 km²) are dominated by surfaces already bare in 2000.
+pattern of the 2022 map; the 41% increase in area reflects differences in methods and does not characterise blowout
+dynamics. Anthropogenic sands concentrate in the taiga and forest-tundra of the Nadym-Pur-Taz and Middle Ob regions
+(85.2%) and within oil and gas fields (68.3%). According to EGRN, 58.7% of their area lies within land allocations;
+objects without an allocation (349.3 km²) are mostly post-2000, whereas parts beyond allocations (243.0 km²) are
+enriched in surfaces already bare in 2000 (38.4% versus 25.3% in the class).
 
 ## Repository contents
 
