@@ -1,57 +1,30 @@
-# Формат Citation File Format 1.2.0 (https://citation-file-format.github.io/).
-# ЗАГЛУШКИ: всё, что помечено TODO, заменить до публикации (DOI, соавторы, ORCID, дата выпуска, ссылки).
-# Лицензии (19.11.2026): код MIT (LICENSE), документация и данные CC BY 4.0, части из OSM ODbL 1.0 (LICENSE-DATA.md).
 cff-version: 1.2.0
 message: >-
-  If you use the BareSand code or data, please cite the article in preferred-citation
-  and the dataset DOI. TODO: replace placeholder DOIs and URLs before release.
+  If you use these materials, please cite them as below and cite the article
+  "Updated map of bare sands in the north of Western Siberia and its accuracy assessment"
+  (Geodezia i Kartografia), to which they are supplementary.
 title: >-
-  BareSand: bare sand mask of the north of Western Siberia from Sentinel-2
-  and attribution of sand genesis (code and documentation)
+  BareSand: bare sands of the north of Western Siberia. Supplementary materials,
+  processing code and interactive map
 type: software
-version: "v7"
 license:
   - MIT
   - CC-BY-4.0
-# date-released: TODO (дата выпуска репозитория, формат ГГГГ-ММ-ДД)
 authors:
   - family-names: Sizov
     given-names: O. S.
     affiliation: >-
       Gubkin Russian State University of Oil and Gas (National Research University);
       Oil and Gas Research Institute, Russian Academy of Sciences
-    # orcid: https://orcid.org/TODO
-  # TODO: соавторы (в статье: «[соавторы: уточнить]»)
-identifiers:
-  - type: doi
-    value: 10.0000/TODO-DATASET-DOI
-    description: "TODO: DOI of the data release (final layers v7, mask, primary vector)"
-  - type: url
-    value: "https://example.org/TODO-data-release"
-    description: "TODO: data release URL (cloud storage)"
-  - type: url
-    value: "https://nodal-thunder-481307-u1.projects.earthengine.app/view/baresand"
-    description: "TODO: Earth Engine App URL (gee_app)"
-# repository-code: TODO (адрес репозитория после публикации)
+    orcid: https://orcid.org/0000-0003-1509-8912
+repository-code: https://github.com/SizovOleg/baresand-zapsib
+url: https://nodal-thunder-481307-u1.projects.earthengine.app/view/baresand
 keywords:
   - bare sands
   - aeolian relief
-  - genesis
+  - anthropogenic disturbance
   - accuracy assessment
   - Sentinel-2
   - ArcticDEM
   - Google Earth Engine
   - Western Siberia
-preferred-citation:
-  type: article
-  title: >-
-    Updated map of bare sands in the north of Western Siberia and its accuracy assessment
-  # Название статьи на русском: «Оголённые пески севера Западной Сибири: уточнение карты и оценка точности».
-  authors:
-    - family-names: Sizov
-      given-names: O. S.
-    # TODO: соавторы
-  journal: Geodezia i Kartografia
-  year: 2026
-  doi: 10.0000/TODO-ARTICLE-DOI
-  # TODO: volume, issue, start, end после выхода статьи
