@@ -33,7 +33,7 @@
 | маска песка | растр, 10 м | | 1: песок, 0: не песок или вне покрытия (раздел 9) |
 | первичный вектор | Polygon | 574 520 | связные компоненты маски не менее 900 м² (раздел 9) |
 | сцены Sentinel-2 по тайлам | таблица | 128 | [supplement/tables/S07_scenes.csv](../supplement/tables/S07_scenes.csv) |
-| возраст поверхности контуров без данных в слое | таблица | 1 851 | [supplement/tables/S11_age_recalc.csv](../supplement/tables/S11_age_recalc.csv) ([S11](../supplement/S11_cadastre.md)) |
+| контуры с дополнительно определённым возрастом поверхности | таблица | 1 851 | [supplement/tables/S11_age_recalc.csv](../supplement/tables/S11_age_recalc.csv) ([S11](../supplement/S11_cadastre.md)) |
 
 Слои показаны в интерактивной карте ([../gee_app/README.md](../gee_app/README.md)). Контуры итогового слоя, групп
 техногенных песков и маски отводов выгружаются из карты по видимой области (GeoJSON, KML, CSV; геометрия упрощена на
@@ -120,7 +120,7 @@
 | burn_suspect | 0/1 | потеря леса 2001-2019 гг.: loss_frac ≥ 0,50 и tc2000_mean ≥ 10 (гарь или вырубка) |
 | old_sand_2000 | 0/1 | открытый уже в 2000 г.: bare2000_frac ≥ 0,70 |
 | mixed_suspect | 0/1/2 | 1: техногенный не менее 50 га на старом песке при доле следа OSM < 0,30; 2: природный не менее 50 га, задетый инфраструктурой |
-| hansen_covered | 0/1 | контур в пределах использованных листов Global Forest Change (60-70° с. ш.) |
+| hansen_covered | 0/1 | контур в пределах использованных листов Global Forest Change (60-70° с. ш.); у контуров вне листов флаги шагов 3 и 4 по Global Forest Change (`old_sand_2000` и др.) не рассчитывались, `bare2000_frac` и `age2000` для них определены дополнительно (S11) |
 | nspd_lic_suspect | 0/1 | лицензионный участок ЕГРН, задевающий природный песок краем |
 | hist_floodplain | 0/1 | затопляемый по GSW (flood_frac0 ≥ 0,20), но открытый уже в 2000 г. |
 | anthro_late_suspect, anthro_footprint | 0/1; 0-1 | отмель шагов 1-2 с техногенным следом не менее 0,30 (участки и сооружения ЕГРН или OSM) и доля этого следа |
@@ -157,7 +157,7 @@
 | cad_status | | in: в отводе; cross: превышение отвода; unreg: без отвода (в том числе контуры, лишь касающиеся отвода другого объекта) |
 | cad_exc10_ha | га | части контура дальше 10 м от отводов, куски не менее 900 м² |
 | cad_exc20_ha | га | то же при допуске 20 м |
-| age2000 | | new: bare2000_frac < 0,30; mid: 0,30-0,70; old: ≥ 0,70; na: в слое не определён (севернее 70° с. ш., вне использованных листов GFC, и части разделённых смешанных контуров); дополнительно определённые значения: [S11_age_recalc.csv](../supplement/tables/S11_age_recalc.csv) |
+| age2000 | | new: bare2000_frac < 0,30; mid: 0,30-0,70; old: ≥ 0,70; указан у всех техногенных контуров; у 1 851 контура вне использованных листов GFC (севернее 70° с. ш. и части разделённых смешанных контуров) определён дополнительно в Earth Engine: [S11_age_recalc.csv](../supplement/tables/S11_age_recalc.csv) |
 
 Определения групп и статусов: [METHODS.md](METHODS.md), раздел 9; итоги: [S11](../supplement/S11_cadastre.md). Поле
 age2000 характеризует оголённость поверхности в 2000 г., а не дату создания объекта.
@@ -244,7 +244,7 @@ d_building, d_place, place_type, osm_overlap, osm_overlap_built, track_touch, d_
 | Copernicus Sentinel-2 L2A (`COPERNICUS/S2_SR_HARMONIZED`), 2017-2025 гг. | маска песка, композит 2017-2019 гг. | Contains modified Copernicus Sentinel data 2017-2025 |
 | JRC Global Surface Water | шаги 1, 2, 5 | Pekel et al., 2016 |
 | MERIT Hydro | шаги 1, 2, 5 | Yamazaki et al., 2019 |
-| Global Forest Change, версия 1.7 (листы 70N; для контуров без данных в слое `UMD/hansen/global_forest_change_2019_v1_7`) | шаги 3, 4, поле age2000, возраст поверхности | Hansen et al., 2013 |
+| Global Forest Change, версия 1.7 (листы 70N; для контуров вне этих листов `UMD/hansen/global_forest_change_2019_v1_7`) | шаги 3, 4, поле age2000, возраст поверхности | Hansen et al., 2013 |
 | Landsat 5 TM (USGS) | шаг 3 | Landsat data courtesy of the U.S. Geological Survey |
 | ArcticDEM, версия 4.1 (Polar Geospatial Center) | шаг 5 | Porter et al., 2023; Polar Geospatial Center, University of Minnesota |
 | AlphaEarth Foundations (`GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL`) | перенос меток (шаг 6), сравнение методов | Brown et al., 2025 |

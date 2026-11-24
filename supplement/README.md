@@ -31,6 +31,6 @@
 | [S07_scenes.csv](tables/S07_scenes.csv) | сцены Sentinel-2 по тайлам | S7 |
 | [S11_allot_by_district.csv](tables/S11_allot_by_district.csv) | техногенные пески и отводы по районам | S11 |
 | [S11_age_groups.csv](tables/S11_age_groups.csv) | возрастные группы техногенных песков | S11 |
-| [S11_age_recalc.csv](tables/S11_age_recalc.csv) | дополнительно определённый возраст контуров без данных в слое | S11 |
+| [S11_age_recalc.csv](tables/S11_age_recalc.csv) | контуры с дополнительно определённым возрастом поверхности | S11 |
 | [S13_strip500.csv](tables/S13_strip500.csv) | суша и эоловые пески в полосах 500 м и 2 км по ареалам | S13 |
 | [S13_distance_profile.csv](tables/S13_distance_profile.csv) | профиль по расстоянию до воды или русла | S13 |
