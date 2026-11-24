@@ -28,6 +28,7 @@
 
 | Файл | Содержание | Раздел |
 |---|---|---|
+| [S06_sample.csv](tables/S06_sample.csv) | выборка оценки точности: страты, класс карты, эталон | S6 |
 | [S07_scenes.csv](tables/S07_scenes.csv) | сцены Sentinel-2 по тайлам | S7 |
 | [S11_allot_by_district.csv](tables/S11_allot_by_district.csv) | техногенные пески и отводы по районам | S11 |
 | [S11_age_groups.csv](tables/S11_age_groups.csv) | возрастные группы техногенных песков | S11 |

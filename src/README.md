@@ -60,7 +60,7 @@ Engine заданы константами в начале скриптов (`RO
 | | python/111_alphaearth_features.py - 115_small_eval.py | эмбеддинги AlphaEarth, перенос меток и его проверка |
 | окно проверки и утилиты | python/105_owner_click_batch.py, 107_owner_click_ingest.py, owner_click_server.py | окно экспертной разметки, приём меток |
 | | python/qc_thumb_xyz.py, qc_render_parallel.py, cpu_limit.py | снимки Esri World Imagery для разметки, ограничение нагрузки |
-| оценка точности | python/118_validation_v4_pop.py, 119_validation_v4.py | совокупность, оценки по площади ([S6](../supplement/S06_accuracy.md)) |
+| оценка точности | python/118_validation_v4_pop.py, 119_validation_v4.py, 161_accuracy_sample_table.py | совокупность, оценки по площади, таблица выборки ([S6](../supplement/S06_accuracy.md)) |
 | точечные правки и итоговый слой | python/125_mixed_for_split.py, 132_apply_mixed_split.py | пересмотр смешанных контуров (v5) |
 | | python/134_aeolian_techno_candidates.py, 135_merge_readers.py, 136_owner_techno_batch.py, 137_small_techno_candidates.py, 138_build_final.py | эоловые контуры вблизи инфраструктуры (v7) |
 | | python/141_control_batch.py, 142_control_estimates.py, 143_control_review.py | контрольная выборка T3 ([S10](../supplement/S10_point_corrections.md)) |

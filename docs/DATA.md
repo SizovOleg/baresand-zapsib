@@ -32,6 +32,7 @@
 | растры плотности | растр | | площадь песков класса в ячейках (раздел 8) |
 | маска песка | растр, 10 м | | 1: песок, 0: не песок или вне покрытия (раздел 9) |
 | первичный вектор | Polygon | 574 520 | связные компоненты маски не менее 900 м² (раздел 9) |
+| выборка оценки точности | таблица | 276 | [supplement/tables/S06_sample.csv](../supplement/tables/S06_sample.csv) ([S6](../supplement/S06_accuracy.md)) |
 | сцены Sentinel-2 по тайлам | таблица | 128 | [supplement/tables/S07_scenes.csv](../supplement/tables/S07_scenes.csv) |
 | контуры с дополнительно определённым возрастом поверхности | таблица | 1 851 | [supplement/tables/S11_age_recalc.csv](../supplement/tables/S11_age_recalc.csv) ([S11](../supplement/S11_cadastre.md)) |
 
